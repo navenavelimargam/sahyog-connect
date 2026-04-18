@@ -14,16 +14,274 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_requests: {
+        Row: {
+          assigned_volunteer_id: string | null
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          image_urls: string[] | null
+          location: string
+          ngo_id: string | null
+          priority: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          assigned_volunteer_id?: string | null
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          location: string
+          ngo_id?: string | null
+          priority?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          assigned_volunteer_id?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          location?: string
+          ngo_id?: string | null
+          priority?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          author_id: string
+          category: string | null
+          comments_count: number | null
+          created_at: string | null
+          description: string
+          id: string
+          image_urls: string[] | null
+          likes_count: number | null
+          location: string | null
+          post_type: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          category?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          location?: string | null
+          post_type?: string
+          title: string
+        }
+        Update: {
+          author_id?: string
+          category?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          location?: string | null
+          post_type?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_verified: boolean | null
+          ngo_name: string | null
+          ngo_reg_number: string | null
+          phone: string | null
+          rating: number | null
+          skills: string[] | null
+          state: string | null
+          tasks_completed: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id: string
+          is_verified?: boolean | null
+          ngo_name?: string | null
+          ngo_reg_number?: string | null
+          phone?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          state?: string | null
+          tasks_completed?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_verified?: boolean | null
+          ngo_name?: string | null
+          ngo_reg_number?: string | null
+          phone?: string | null
+          rating?: number | null
+          skills?: string[] | null
+          state?: string | null
+          tasks_completed?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "user" | "volunteer" | "ngo_supervisor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +408,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["user", "volunteer", "ngo_supervisor"],
+    },
   },
 } as const
