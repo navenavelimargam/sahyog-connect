@@ -33,7 +33,7 @@ export function BottomNav() {
       { to: "/feed", icon: Home, label: "Home" },
       { to: "/notifications", icon: Bell, label: "Alerts" },
       { to: "/help", icon: LifeBuoy, label: "Help", center: true },
-      { to: "/tracker", icon: LayoutDashboard, label: "Tracker" } as Item,
+      { to: "/tracker", icon: LayoutDashboard, label: "Tracker" },
       { to: "/profile", icon: User, label: "Profile" },
     ];
   }
