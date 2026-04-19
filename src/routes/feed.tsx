@@ -23,6 +23,14 @@ import bloodCamp from "@/assets/blood-donation-camp.jpg";
 import yogaPoster from "@/assets/yoga-day-poster.jpg";
 import shelterTent from "@/assets/shelter-tent.jpg";
 import flood from "@/assets/flood-relief-distribution.jpg";
+import womenSewing from "@/assets/women-empowerment-sewing.jpg";
+import shelterChildren from "@/assets/shelter-children.jpg";
+import oldAge from "@/assets/old-age-home.jpg";
+import childrenCourtyard from "@/assets/children-courtyard.jpg";
+import yogaGroup from "@/assets/yoga-group.jpg";
+import bloodGroup from "@/assets/blood-donation-group.jpg";
+import floodVol from "@/assets/flood-relief-volunteers.jpg";
+import greenYatra from "@/assets/green-yatra-plantation.jpg";
 
 export const Route = createFileRoute("/feed")({
   component: FeedPage,
@@ -141,6 +149,110 @@ const SEED_POSTS: SeedPost[] = [
     category: "blood",
     categoryEmoji: "🩸",
     initialLikes: 188,
+  },
+  {
+    id: "p7",
+    ngo: "SEWA — Self Employed Women's Association",
+    badge: "ngo",
+    location: "Ahmedabad, Gujarat",
+    time: "5 hours ago",
+    title: "Women Empowerment — Tailoring Workshop Graduates 40 Sisters 👩‍🏭",
+    description: "40 women from underprivileged communities completed our 6-month tailoring & financial literacy program today. They now have skills to earn a sustainable income for their families. Stand for women, stand for change. ✨",
+    images: [womenSewing, smileFood],
+    category: "education",
+    categoryEmoji: "👩",
+    initialLikes: 234,
+  },
+  {
+    id: "p8",
+    ngo: "People for Animals (PFA)",
+    badge: "ngo",
+    location: "Delhi NCR",
+    time: "8 hours ago",
+    title: "Stray Animal Shelter — 28 Dogs Rescued This Week 🐕",
+    description: "Our team rescued 28 injured stray dogs this week. They're now safe at our shelter, getting medical care, vaccinations, food and love. Adopt, don't shop! Visit us this weekend.",
+    images: [shelterChildren, shelterTent],
+    category: "animal",
+    categoryEmoji: "🐾",
+    initialLikes: 312,
+  },
+  {
+    id: "p9",
+    ngo: "HelpAge India",
+    badge: "ngo",
+    location: "Lucknow, Uttar Pradesh",
+    time: "Yesterday",
+    title: "Old Age Home — Diwali Celebration with Our Elders 🪔",
+    description: "Spent the day with 60 senior citizens at our home. Sweets, songs, and so many stories. Loneliness is the worst illness — your visits are the best medicine. ❤️",
+    images: [oldAge, childrenCourtyard],
+    category: "shelter",
+    categoryEmoji: "🏠",
+    initialLikes: 167,
+  },
+  {
+    id: "p10",
+    ngo: "Nanhi Kali (Mahindra Foundation)",
+    badge: "ngo",
+    location: "Pune, Maharashtra",
+    time: "Yesterday",
+    title: "Girl Child Education — 200 Sponsorships Renewed 📚",
+    description: "Every educated girl uplifts her entire family. 200 of our Nanhi Kalis received their annual scholarship today. Sponsor a girl's education for ₹3,000/year — change a life forever.",
+    images: [classroom2, womenSewing],
+    category: "education",
+    categoryEmoji: "📚",
+    initialLikes: 421,
+  },
+  {
+    id: "p11",
+    ngo: "Wildlife SOS India",
+    badge: "ngo",
+    location: "Agra, Uttar Pradesh",
+    time: "2 days ago",
+    title: "Animal Rescue — Injured Cow Treated & Released 🐄",
+    description: "Received an emergency call about an injured cow on the highway. Our rescue team arrived in 30 minutes, treated her wounds, and she's now back on her feet. Every life matters.",
+    images: [shelterTent, floodVol],
+    category: "animal",
+    categoryEmoji: "🐾",
+    initialLikes: 198,
+  },
+  {
+    id: "p12",
+    ngo: "Art of Living India",
+    badge: "ngo",
+    location: "Bangalore, Karnataka",
+    time: "3 days ago",
+    title: "Free Yoga Camp — 500 Participants 🧘‍♀️",
+    description: "Sunrise yoga session by the lake. 500 community members joined us for free guided meditation and pranayama. Mental wellness is community wellness.",
+    images: [yogaGroup, yogaPoster],
+    category: "medical",
+    categoryEmoji: "🧘",
+    initialLikes: 145,
+  },
+  {
+    id: "p13",
+    ngo: "Indian Red Cross Society",
+    badge: "ngo",
+    location: "Mumbai, Maharashtra",
+    time: "4 days ago",
+    title: "Blood Donation Drive — Corporate Partnership 🩸",
+    description: "Partnered with 12 corporate offices for a city-wide blood drive. 580 units collected — enough to save 1,700+ lives. Thank you, Mumbai!",
+    images: [bloodGroup, bloodCamp],
+    category: "blood",
+    categoryEmoji: "🩸",
+    initialLikes: 289,
+  },
+  {
+    id: "p14",
+    ngo: "Green Yatra",
+    badge: "ngo",
+    location: "Mumbai, Maharashtra",
+    time: "5 days ago",
+    title: "Mangrove Restoration — 1,000 Saplings Planted 🌱",
+    description: "Coastal protection starts with mangroves. 50 volunteers, 1,000 saplings, 1 beautiful coastline restored. Join our next Sunday plantation drive.",
+    images: [greenYatra, treePlant],
+    category: "tree",
+    categoryEmoji: "🌳",
+    initialLikes: 176,
   },
 ];
 
