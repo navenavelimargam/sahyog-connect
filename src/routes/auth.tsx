@@ -34,15 +34,15 @@ function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<AuthMode>(search.mode);
-  const [step, setStep] = useState<"form" | "otp">("form");
+  const [authAction, setAuthAction] = useState<"login" | "signup">("signup");
   const [busy, setBusy] = useState(false);
 
   // shared
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [otp, setOtp] = useState("");
 
   // volunteer
   const [skills, setSkills] = useState<string[]>([]);
@@ -61,52 +61,59 @@ function AuthPage() {
     ngo: "ngo_supervisor",
   };
 
-  const sendOtp = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !fullName) {
-      toast.error("Please fill in name and email");
-      return;
-    }
-    setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/feed`,
-        shouldCreateUser: true,
-        data: {
-          full_name: fullName,
-          phone,
-          city,
-          ngo_name: tab === "ngo" ? ngoName : undefined,
-          skills: tab === "volunteer" ? skills.join(",") : undefined,
-          role: tabRole[tab],
-        },
-      },
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(`OTP sent to ${email}`);
-    setStep("otp");
-  };
 
-  const verifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      toast.error("Enter the 6-digit code");
+    if (!email || !password) {
+      toast.error("Please enter email and password");
       return;
     }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+
+    if (authAction === "signup") {
+      if (!fullName) {
+        setBusy(false);
+        toast.error("Please enter your full name");
+        return;
+      }
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/feed`,
+          data: {
+            full_name: fullName,
+            phone,
+            city,
+            ngo_name: tab === "ngo" ? ngoName : undefined,
+            ngo_reg_number: tab === "ngo" ? ngoReg : undefined,
+            skills: tab === "volunteer" ? skills.join(",") : undefined,
+            role: tabRole[tab],
+          },
+        },
+      });
+      setBusy(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Welcome to Sahyog! 🎉");
+      navigate({ to: "/feed" });
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setBusy(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Welcome back! 👋");
+      navigate({ to: "/feed" });
     }
-    toast.success("Welcome to Sahyog! 🎉");
-    navigate({ to: "/feed" });
   };
 
   const toggleSkill = (s: string) => {
@@ -126,86 +133,102 @@ function AuthPage() {
       </header>
 
       <div className="mx-auto max-w-md px-4 py-6">
-        {step === "otp" ? (
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-            <h2 className="font-display text-2xl font-bold text-foreground">Verify your email</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              We sent a 6-digit code to <span className="font-semibold text-foreground">{email}</span>
-            </p>
-            <form onSubmit={verifyOtp} className="mt-6 space-y-4">
-              <Input
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="000000"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                className="text-center text-2xl font-bold tracking-[0.5em]"
-              />
-              <Button type="submit" disabled={busy} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Verify & Continue
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => setStep("form")} className="w-full">
-                Change email
-              </Button>
-            </form>
+        {/* Login/Signup toggle */}
+        <div className="mb-4 grid grid-cols-2 gap-2 rounded-full border border-border bg-card p-1">
+          {(["signup", "login"] as const).map((a) => (
+            <button
+              key={a}
+              onClick={() => setAuthAction(a)}
+              className={cn(
+                "rounded-full py-2 text-sm font-semibold transition",
+                authAction === a
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {a === "signup" ? "Register" : "Login"}
+            </button>
+          ))}
+        </div>
+
+        {authAction === "signup" && (
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            {(["user", "volunteer", "ngo"] as AuthMode[]).map((t) => {
+              const labels = { user: ["👤", "Community"], volunteer: ["🤝", "Volunteer"], ngo: ["🏛", "NGO"] };
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={cn(
+                    "rounded-xl border-2 px-2 py-3 text-center text-xs font-semibold transition",
+                    tab === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                  )}
+                >
+                  <div className="text-xl">{labels[t][0]}</div>
+                  <div className="mt-1">{labels[t][1]}</div>
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          <>
-            <div className="mb-4 grid grid-cols-3 gap-2">
-              {(["user", "volunteer", "ngo"] as AuthMode[]).map((t) => {
-                const labels = { user: ["👤", "Community"], volunteer: ["🤝", "Volunteer"], ngo: ["🏛", "NGO"] };
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={cn(
-                      "rounded-xl border-2 px-2 py-3 text-center text-xs font-semibold transition",
-                      tab === t
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                    )}
-                  >
-                    <div className="text-xl">{labels[t][0]}</div>
-                    <div className="mt-1">{labels[t][1]}</div>
-                  </button>
-                );
-              })}
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+          <div>
+            <h2 className="font-display text-xl font-bold text-foreground">
+              {authAction === "login"
+                ? "Welcome back"
+                : tab === "user"
+                ? "Create your account"
+                : tab === "volunteer"
+                ? "Become a Volunteer"
+                : "Register your NGO"}
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {authAction === "login"
+                ? "Sign in with your email and password."
+                : "Use your email and a password to create an account."}
+            </p>
+          </div>
+
+          {authAction === "signup" && (
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input
+                placeholder={tab === "ngo" ? "Priya Sharma" : tab === "volunteer" ? "Suresh Patil" : "Ramesh Kumar"}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
             </div>
+          )}
 
-            <form onSubmit={sendOtp} className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-card">
-              <div>
-                <h2 className="font-display text-xl font-bold text-foreground">
-                  {tab === "user" && "Register / Login"}
-                  {tab === "volunteer" && "Become a Volunteer"}
-                  {tab === "ngo" && "Register your NGO"}
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  We'll email you a 6-digit code to verify your account.
-                </p>
-              </div>
+          <div className="space-y-2">
+            <Label>Email <span className="text-destructive">*</span></Label>
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label>Full Name</Label>
-                <Input
-                  placeholder={tab === "ngo" ? "Priya Sharma" : tab === "volunteer" ? "Suresh Patil" : "Ramesh Kumar"}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
+          <div className="space-y-2">
+            <Label>Password <span className="text-destructive">*</span></Label>
+            <Input
+              type="password"
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label>Email <span className="text-destructive">*</span></Label>
-                <Input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
+          {authAction === "signup" && (
+            <>
               <div className="space-y-2">
                 <Label>Phone (+91)</Label>
                 <Input
@@ -266,17 +289,28 @@ function AuthPage() {
                   </div>
                 </>
               )}
+            </>
+          )}
 
-              <Button type="submit" disabled={busy} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Send Email OTP
-                {tab === "user" && <User className="ml-2 h-4 w-4" />}
-                {tab === "volunteer" && <Handshake className="ml-2 h-4 w-4" />}
-                {tab === "ngo" && <Building2 className="ml-2 h-4 w-4" />}
-              </Button>
-            </form>
-          </>
-        )}
+          <Button type="submit" disabled={busy} className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {authAction === "login" ? "Sign In" : "Create Account"}
+            {authAction === "signup" && tab === "user" && <User className="ml-2 h-4 w-4" />}
+            {authAction === "signup" && tab === "volunteer" && <Handshake className="ml-2 h-4 w-4" />}
+            {authAction === "signup" && tab === "ngo" && <Building2 className="ml-2 h-4 w-4" />}
+          </Button>
+
+          <p className="text-center text-xs text-muted-foreground">
+            {authAction === "login" ? "New here?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => setAuthAction(authAction === "login" ? "signup" : "login")}
+              className="font-semibold text-primary hover:underline"
+            >
+              {authAction === "login" ? "Create an account" : "Sign in"}
+            </button>
+          </p>
+        </form>
       </div>
     </main>
   );
