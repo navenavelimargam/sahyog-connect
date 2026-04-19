@@ -52,11 +52,13 @@ export type Database = {
           category: string
           created_at: string | null
           description: string
+          eta_minutes: number | null
           id: string
           image_urls: string[] | null
           location: string
           ngo_id: string | null
           priority: string
+          selected_ngo_name: string | null
           status: string
           user_id: string
         }
@@ -65,11 +67,13 @@ export type Database = {
           category: string
           created_at?: string | null
           description: string
+          eta_minutes?: number | null
           id?: string
           image_urls?: string[] | null
           location: string
           ngo_id?: string | null
           priority?: string
+          selected_ngo_name?: string | null
           status?: string
           user_id: string
         }
@@ -78,11 +82,13 @@ export type Database = {
           category?: string
           created_at?: string | null
           description?: string
+          eta_minutes?: number | null
           id?: string
           image_urls?: string[] | null
           location?: string
           ngo_id?: string | null
           priority?: string
+          selected_ngo_name?: string | null
           status?: string
           user_id?: string
         }
