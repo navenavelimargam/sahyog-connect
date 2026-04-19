@@ -1,18 +1,43 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, User, LifeBuoy, LayoutDashboard, Menu } from "lucide-react";
+import { Home, User, LifeBuoy, LayoutDashboard, ClipboardList, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
-type NavTo = "/feed" | "/profile" | "/help" | "/dashboard" | "/notifications";
-const items: { to: NavTo; icon: typeof Home; label: string; center?: boolean }[] = [
-  { to: "/feed", icon: Home, label: "Home" },
-  { to: "/profile", icon: User, label: "Profile" },
-  { to: "/help", icon: LifeBuoy, label: "Help", center: true },
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/notifications", icon: Menu, label: "More" },
-];
+type NavTo = "/feed" | "/profile" | "/help" | "/dashboard" | "/tasks" | "/notifications" | "/tracker";
+type Item = { to: NavTo; icon: typeof Home; label: string; center?: boolean };
 
 export function BottomNav() {
   const loc = useLocation();
+  const { role } = useAuth();
+
+  // Role-based items. The center "Help" button is always there for the requesting flow.
+  let items: Item[];
+  if (role === "ngo_supervisor") {
+    items = [
+      { to: "/feed", icon: Home, label: "Home" },
+      { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+      { to: "/help", icon: LifeBuoy, label: "Help", center: true },
+      { to: "/notifications", icon: Bell, label: "Alerts" },
+      { to: "/profile", icon: User, label: "Profile" },
+    ];
+  } else if (role === "volunteer") {
+    items = [
+      { to: "/feed", icon: Home, label: "Home" },
+      { to: "/tasks", icon: ClipboardList, label: "Tasks" },
+      { to: "/help", icon: LifeBuoy, label: "Help", center: true },
+      { to: "/notifications", icon: Bell, label: "Alerts" },
+      { to: "/profile", icon: User, label: "Profile" },
+    ];
+  } else {
+    items = [
+      { to: "/feed", icon: Home, label: "Home" },
+      { to: "/notifications", icon: Bell, label: "Alerts" },
+      { to: "/help", icon: LifeBuoy, label: "Help", center: true },
+      { to: "/tracker", icon: LayoutDashboard, label: "Tracker" },
+      { to: "/profile", icon: User, label: "Profile" },
+    ];
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card shadow-card">
       <div className="mx-auto flex max-w-2xl items-end justify-around px-2 py-2">
