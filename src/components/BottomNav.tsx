@@ -3,7 +3,7 @@ import { Home, User, LifeBuoy, LayoutDashboard, ClipboardList, Bell } from "luci
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-type NavTo = "/feed" | "/profile" | "/help" | "/dashboard" | "/tasks" | "/notifications";
+type NavTo = "/feed" | "/profile" | "/help" | "/dashboard" | "/tasks" | "/notifications" | "/tracker";
 type Item = { to: NavTo; icon: typeof Home; label: string; center?: boolean };
 
 export function BottomNav() {
