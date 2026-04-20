@@ -83,7 +83,7 @@ function NGODashboard() {
     }
     const enriched = (reqs ?? []).map((r) => ({ ...r, requester_name: nameMap[r.user_id] ?? "Community member" }));
 
-    // 2. Volunteers — only those who selected this NGO at signup
+    // 2. Volunteers — only those who selected this NGO at signup (case-insensitive match)
     const { data: volRoles } = await supabase.from("user_roles").select("user_id").eq("role", "volunteer");
     const volIds = (volRoles ?? []).map((r) => r.user_id);
     let vols: VolunteerRow[] = [];
@@ -92,7 +92,7 @@ function NGODashboard() {
         .from("profiles")
         .select("id, full_name, city, skills, rating, tasks_completed, ngo_name")
         .in("id", volIds)
-        .eq("ngo_name", profile.ngo_name);
+        .ilike("ngo_name", profile.ngo_name.trim());
       vols = (volProfs ?? []) as VolunteerRow[];
     }
 
