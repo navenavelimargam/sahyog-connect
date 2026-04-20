@@ -324,6 +324,49 @@ function FeedPage() {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [unread, setUnread] = useState(0);
+  const [registeredIds, setRegisteredIds] = useState<Set<string>>(new Set());
+  const [regEvent, setRegEvent] = useState<typeof EVENTS[number] | null>(null);
+  const [regName, setRegName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPeople, setRegPeople] = useState(1);
+  const [regBusy, setRegBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("event_registrations").select("event_id").eq("user_id", user.id).then(({ data }) => {
+      setRegisteredIds(new Set((data ?? []).map((r) => r.event_id)));
+    });
+  }, [user]);
+
+  const openRegister = (e: typeof EVENTS[number]) => {
+    setRegEvent(e);
+    const meta = (user?.user_metadata ?? {}) as { full_name?: string; phone?: string };
+    setRegName(meta.full_name ?? "");
+    setRegPhone(meta.phone ?? "");
+    setRegPeople(1);
+  };
+
+  const submitRegistration = async () => {
+    if (!user || !regEvent) return;
+    if (!regName || !regPhone) { toast.error("Name and phone required"); return; }
+    setRegBusy(true);
+    const { error } = await supabase.from("event_registrations").insert({
+      user_id: user.id,
+      event_id: regEvent.id,
+      event_title: regEvent.title,
+      event_ngo: regEvent.ngo,
+      event_date: regEvent.date,
+      event_location: regEvent.location,
+      full_name: regName,
+      phone: regPhone,
+      num_people: regPeople,
+    });
+    setRegBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`You're registered for ${regEvent.title} 🎉`);
+    setRegisteredIds((s) => new Set([...s, regEvent.id]));
+    setRegEvent(null);
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
