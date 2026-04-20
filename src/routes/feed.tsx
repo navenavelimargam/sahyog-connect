@@ -593,6 +593,38 @@ function FeedPage() {
         </div>
       </section>
 
+      <Dialog open={!!regEvent} onOpenChange={(o) => !o && setRegEvent(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Register for {regEvent?.title}</DialogTitle>
+            <DialogDescription>
+              {regEvent?.ngo} • {regEvent?.date} • {regEvent?.location}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Full Name</Label>
+              <Input value={regName} onChange={(e) => setRegName(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Phone</Label>
+              <Input value={regPhone} onChange={(e) => setRegPhone(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>How many people are coming?</Label>
+              <Input type="number" min={1} max={20} value={regPeople} onChange={(e) => setRegPeople(Math.max(1, Number(e.target.value) || 1))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRegEvent(null)}>Cancel</Button>
+            <Button onClick={submitRegistration} disabled={regBusy} className="bg-primary text-primary-foreground">
+              {regBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Registration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <BottomNav />
     </div>
   );
