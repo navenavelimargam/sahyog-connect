@@ -24,13 +24,26 @@ import yogaPoster from "@/assets/yoga-day-poster.jpg";
 import shelterTent from "@/assets/shelter-tent.jpg";
 import flood from "@/assets/flood-relief-distribution.jpg";
 import womenSewing from "@/assets/women-empowerment-sewing.jpg";
-import shelterChildren from "@/assets/shelter-children.jpg";
 import oldAge from "@/assets/old-age-home.jpg";
 import childrenCourtyard from "@/assets/children-courtyard.jpg";
 import yogaGroup from "@/assets/yoga-group.jpg";
 import bloodGroup from "@/assets/blood-donation-group.jpg";
 import floodVol from "@/assets/flood-relief-volunteers.jpg";
 import greenYatra from "@/assets/green-yatra-plantation.jpg";
+// User-supplied images
+import animal1 from "@/assets/feed-animal-1.jpg";
+import animal2 from "@/assets/feed-animal-2.jpg";
+import animal3 from "@/assets/feed-animal-3.jpg";
+import water1 from "@/assets/feed-water-1.jpg";
+import water2 from "@/assets/feed-water-2.jpg";
+import healthBanner from "@/assets/feed-health.jpg";
+import clothes1 from "@/assets/feed-clothes-1.jpg";
+import clothes2 from "@/assets/feed-clothes-2.jpg";
+import clothes3 from "@/assets/feed-clothes-3.jpg";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/feed")({
   component: FeedPage,
