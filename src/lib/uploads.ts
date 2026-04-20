@@ -29,7 +29,7 @@ export async function getSignedUrls(paths: string[]): Promise<string[]> {
   if (!paths || paths.length === 0) return [];
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600);
   if (error || !data) return [];
-  return data.map((d) => d.signedUrl);
+  return data.map((d) => d.signedUrl).filter((u): u is string => !!u);
 }
 
 /** A list of NGOs whose supervisors exist as accounts in the system. */
