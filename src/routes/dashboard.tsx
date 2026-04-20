@@ -36,6 +36,7 @@ interface VolunteerRow {
   skills: string[] | null;
   rating: number | null;
   tasks_completed: number | null;
+  ngo_name?: string | null;
 }
 
 const PRIORITY_STYLE: Record<string, { border: string; bg: string; chip: string; label: string }> = {
@@ -82,15 +83,16 @@ function NGODashboard() {
     }
     const enriched = (reqs ?? []).map((r) => ({ ...r, requester_name: nameMap[r.user_id] ?? "Community member" }));
 
-    // 2. Volunteers — list of users with role 'volunteer'
+    // 2. Volunteers — only those who selected this NGO at signup
     const { data: volRoles } = await supabase.from("user_roles").select("user_id").eq("role", "volunteer");
     const volIds = (volRoles ?? []).map((r) => r.user_id);
     let vols: VolunteerRow[] = [];
     if (volIds.length > 0) {
       const { data: volProfs } = await supabase
         .from("profiles")
-        .select("id, full_name, city, skills, rating, tasks_completed")
-        .in("id", volIds);
+        .select("id, full_name, city, skills, rating, tasks_completed, ngo_name")
+        .in("id", volIds)
+        .eq("ngo_name", profile.ngo_name);
       vols = (volProfs ?? []) as VolunteerRow[];
     }
 
@@ -184,6 +186,32 @@ function NGODashboard() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* My Volunteers panel */}
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="font-display text-base font-bold">🙋 My Volunteers ({volunteers.length})</h2>
+            <span className="text-[11px] text-muted-foreground">For {profile?.ngo_name}</span>
+          </div>
+          {volunteers.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No volunteers have joined {profile?.ngo_name} yet. When someone signs up as a volunteer for your NGO they will appear here.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {volunteers.map((v) => {
+                const initials = v.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
+                return (
+                  <div key={v.id} className="flex items-center gap-2 rounded-xl border border-border bg-background p-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{initials}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{v.full_name} <span className="text-[10px] text-accent">⭐ {v.rating ?? 5}</span></div>
+                      <div className="truncate text-[11px] text-muted-foreground">{v.city ?? "—"} • {v.skills?.join(", ") || "General"}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <h2 className="px-1 font-display text-lg font-bold">📥 Risk Priority Queue</h2>
