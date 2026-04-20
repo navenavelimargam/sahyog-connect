@@ -170,10 +170,35 @@ function HelpRequestPage() {
                   <Textarea rows={5} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Be specific so volunteers can help fast..." />
                 </div>
                 <div className="space-y-2">
-                  <Label>Photos / documents (optional)</Label>
-                  <button type="button" className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-6 text-sm text-muted-foreground hover:border-primary">
-                    <Camera className="mb-2 h-6 w-6" /> Tap to upload (JPG, PNG, PDF, MP4)
+                  <Label>Photos (optional, up to 4 — max 5MB each)</Label>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInput.current?.click()}
+                    disabled={files.length >= 4}
+                    className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-6 text-sm text-muted-foreground hover:border-primary disabled:opacity-50"
+                  >
+                    <Camera className="mb-2 h-6 w-6" /> {files.length === 0 ? "Tap to upload photos" : `Add more (${files.length}/4)`}
                   </button>
+                  {previews.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {previews.map((url, i) => (
+                        <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-border">
+                          <img src={url} alt={`preview-${i}`} className="h-full w-full object-cover" />
+                          <button type="button" onClick={() => removeFile(i)} className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white" aria-label="Remove">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Your location</Label>
