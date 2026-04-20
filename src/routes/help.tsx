@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2 } from "lucide-react";
+import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { uploadFiles } from "@/lib/uploads";
 
 export const Route = createFileRoute("/help")({
   component: HelpRequestPage,
@@ -43,8 +44,11 @@ function HelpRequestPage() {
   const [desc, setDesc] = useState("");
   const [location, setLocation] = useState("");
   const [selectedNgo, setSelectedNgo] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -58,23 +62,45 @@ function HelpRequestPage() {
     );
   };
 
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    const picked = Array.from(list).slice(0, 4 - files.length).filter((f) => {
+      if (f.size > 5 * 1024 * 1024) { toast.error(`${f.name} is over 5MB`); return false; }
+      return true;
+    });
+    setFiles((p) => [...p, ...picked]);
+    setPreviews((p) => [...p, ...picked.map((f) => URL.createObjectURL(f))]);
+  };
+  const removeFile = (i: number) => {
+    setFiles((p) => p.filter((_, idx) => idx !== i));
+    setPreviews((p) => { const u = p[i]; if (u) URL.revokeObjectURL(u); return p.filter((_, idx) => idx !== i); });
+  };
+
   const submit = async () => {
     if (!user || !type || !selectedNgo) return;
     setSubmitting(true);
-    const t = TYPES.find((x) => x.key === type)!;
-    const { error } = await supabase.from("help_requests").insert({
-      user_id: user.id,
-      category: type,
-      priority: t.priority,
-      description: desc,
-      location,
-      selected_ngo_name: selectedNgo,
-      status: "pending",
-    });
-    setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Request sent to ${selectedNgo} 🆘`);
-    setDone(true);
+    try {
+      const t = TYPES.find((x) => x.key === type)!;
+      const paths = files.length > 0 ? await uploadFiles(user.id, files) : [];
+      const { error } = await supabase.from("help_requests").insert({
+        user_id: user.id,
+        category: type,
+        priority: t.priority,
+        description: desc,
+        location,
+        selected_ngo_name: selectedNgo,
+        image_urls: paths,
+        status: "pending",
+      });
+      if (error) throw error;
+      toast.success(`Request sent to ${selectedNgo} 🆘`);
+      setDone(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not submit request";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading || !user) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -144,10 +170,35 @@ function HelpRequestPage() {
                   <Textarea rows={5} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Be specific so volunteers can help fast..." />
                 </div>
                 <div className="space-y-2">
-                  <Label>Photos / documents (optional)</Label>
-                  <button type="button" className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-6 text-sm text-muted-foreground hover:border-primary">
-                    <Camera className="mb-2 h-6 w-6" /> Tap to upload (JPG, PNG, PDF, MP4)
+                  <Label>Photos (optional, up to 4 — max 5MB each)</Label>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInput.current?.click()}
+                    disabled={files.length >= 4}
+                    className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-6 text-sm text-muted-foreground hover:border-primary disabled:opacity-50"
+                  >
+                    <Camera className="mb-2 h-6 w-6" /> {files.length === 0 ? "Tap to upload photos" : `Add more (${files.length}/4)`}
                   </button>
+                  {previews.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {previews.map((url, i) => (
+                        <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-border">
+                          <img src={url} alt={`preview-${i}`} className="h-full w-full object-cover" />
+                          <button type="button" onClick={() => removeFile(i)} className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white" aria-label="Remove">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Your location</Label>

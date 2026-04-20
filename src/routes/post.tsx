@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Camera, Megaphone } from "lucide-react";
+import { Loader2, Camera, Megaphone, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { uploadFiles } from "@/lib/uploads";
 
 export const Route = createFileRoute("/post")({
   component: CreatePostPage,
@@ -34,30 +35,63 @@ function CreatePostPage() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState(profile?.city || "");
   const [category, setCategory] = useState("food");
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [user, loading, navigate]);
+
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    const picked = Array.from(list).slice(0, 4 - files.length);
+    const sizeOk = picked.filter((f) => {
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`${f.name} is over 5MB and was skipped`);
+        return false;
+      }
+      return true;
+    });
+    setFiles((prev) => [...prev, ...sizeOk]);
+    setPreviews((prev) => [...prev, ...sizeOk.map((f) => URL.createObjectURL(f))]);
+  };
+
+  const removeFile = (i: number) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setPreviews((prev) => {
+      const url = prev[i];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, idx) => idx !== i);
+    });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     if (!title || !description) { toast.error("Title and description required"); return; }
     setBusy(true);
-    const { error } = await supabase.from("posts").insert({
-      author_id: user.id,
-      post_type: postType,
-      title,
-      description,
-      category,
-      location,
-      image_urls: [],
-    });
-    setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Post published! 📢");
-    navigate({ to: "/feed" });
+    try {
+      const paths = files.length > 0 ? await uploadFiles(user.id, files) : [];
+      const { error } = await supabase.from("posts").insert({
+        author_id: user.id,
+        post_type: postType,
+        title,
+        description,
+        category,
+        location,
+        image_urls: paths,
+      });
+      if (error) throw error;
+      toast.success("Post published! 📢");
+      navigate({ to: "/profile" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not publish post";
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (loading || !user) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -105,11 +139,41 @@ function CreatePostPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Upload Images (preview)</Label>
-            <button type="button" className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-8 text-sm text-muted-foreground hover:border-primary">
+            <Label>Upload Images (up to 4, max 5MB each)</Label>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={files.length >= 4}
+              className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 py-8 text-sm text-muted-foreground hover:border-primary disabled:opacity-50"
+            >
               <Camera className="mb-2 h-6 w-6" />
-              Tap to upload up to 4 images
+              {files.length === 0 ? "Tap to upload up to 4 images" : `Add more (${files.length}/4)`}
             </button>
+            {previews.length > 0 && (
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {previews.map((url, i) => (
+                  <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-border">
+                    <img src={url} alt={`preview-${i}`} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeFile(i)}
+                      className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

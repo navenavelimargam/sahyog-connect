@@ -24,13 +24,26 @@ import yogaPoster from "@/assets/yoga-day-poster.jpg";
 import shelterTent from "@/assets/shelter-tent.jpg";
 import flood from "@/assets/flood-relief-distribution.jpg";
 import womenSewing from "@/assets/women-empowerment-sewing.jpg";
-import shelterChildren from "@/assets/shelter-children.jpg";
 import oldAge from "@/assets/old-age-home.jpg";
 import childrenCourtyard from "@/assets/children-courtyard.jpg";
 import yogaGroup from "@/assets/yoga-group.jpg";
 import bloodGroup from "@/assets/blood-donation-group.jpg";
 import floodVol from "@/assets/flood-relief-volunteers.jpg";
 import greenYatra from "@/assets/green-yatra-plantation.jpg";
+// User-supplied images
+import animal1 from "@/assets/feed-animal-1.jpg";
+import animal2 from "@/assets/feed-animal-2.jpg";
+import animal3 from "@/assets/feed-animal-3.jpg";
+import water1 from "@/assets/feed-water-1.jpg";
+import water2 from "@/assets/feed-water-2.jpg";
+import healthBanner from "@/assets/feed-health.jpg";
+import clothes1 from "@/assets/feed-clothes-1.jpg";
+import clothes2 from "@/assets/feed-clothes-2.jpg";
+import clothes3 from "@/assets/feed-clothes-3.jpg";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/feed")({
   component: FeedPage,
@@ -171,7 +184,7 @@ const SEED_POSTS: SeedPost[] = [
     time: "8 hours ago",
     title: "Stray Animal Shelter — 28 Dogs Rescued This Week 🐕",
     description: "Our team rescued 28 injured stray dogs this week. They're now safe at our shelter, getting medical care, vaccinations, food and love. Adopt, don't shop! Visit us this weekend.",
-    images: [shelterChildren, shelterTent],
+    images: [animal1, animal3],
     category: "animal",
     categoryEmoji: "🐾",
     initialLikes: 312,
@@ -208,9 +221,9 @@ const SEED_POSTS: SeedPost[] = [
     badge: "ngo",
     location: "Agra, Uttar Pradesh",
     time: "2 days ago",
-    title: "Animal Rescue — Injured Cow Treated & Released 🐄",
-    description: "Received an emergency call about an injured cow on the highway. Our rescue team arrived in 30 minutes, treated her wounds, and she's now back on her feet. Every life matters.",
-    images: [shelterTent, floodVol],
+    title: "Animal Welfare Drive — 60 Strays Fed Daily 🐾",
+    description: "Our daily feeding rounds reached 60+ strays this week across 4 neighbourhoods. Volunteers also provided basic medical aid to 12 injured dogs. Every life matters.",
+    images: [animal3, animal2],
     category: "animal",
     categoryEmoji: "🐾",
     initialLikes: 198,
@@ -254,6 +267,45 @@ const SEED_POSTS: SeedPost[] = [
     categoryEmoji: "🌳",
     initialLikes: 176,
   },
+  {
+    id: "p15",
+    ngo: "WaterAid India",
+    badge: "ngo",
+    location: "Telangana",
+    time: "6 hours ago",
+    title: "Clean Water Project — Tanks Installed in 3 Villages 💧",
+    description: "Three new community water tanks installed this week, serving 1,200+ households. Clean water is dignity. Schools nearby finally have safe drinking taps for the kids.",
+    images: [water1, water2],
+    category: "water",
+    categoryEmoji: "💧",
+    initialLikes: 267,
+  },
+  {
+    id: "p16",
+    ngo: "Spandan Trust",
+    badge: "ngo",
+    location: "North 24 Parganas, West Bengal",
+    time: "10 hours ago",
+    title: "Winter Clothes Distribution — 400 Families Reached 🧥",
+    description: "Our winter drive reached 400 families this season. Sweaters, blankets and warm shoes for children, elders and homeless brothers and sisters. Donate this winter — every warm cloth counts.",
+    images: [clothes3, clothes1, clothes2],
+    category: "clothes",
+    categoryEmoji: "👗",
+    initialLikes: 354,
+  },
+  {
+    id: "p17",
+    ngo: "HealthReach India",
+    badge: "ngo",
+    location: "Andhra Pradesh",
+    time: "Yesterday",
+    title: "Health & Sanitation Mega Camp — 2,400 Beneficiaries 🩺",
+    description: "8 veterinary camps, 1,480 cattle vaccinated, 2,400 individuals screened for free. 461,617 households reached through rural sanitation drives. Health for all.",
+    images: [healthBanner, medicalEye],
+    category: "medical",
+    categoryEmoji: "💊",
+    initialLikes: 412,
+  },
 ];
 
 interface Comment { id: string; author: string; text: string; }
@@ -272,6 +324,49 @@ function FeedPage() {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [unread, setUnread] = useState(0);
+  const [registeredIds, setRegisteredIds] = useState<Set<string>>(new Set());
+  const [regEvent, setRegEvent] = useState<typeof EVENTS[number] | null>(null);
+  const [regName, setRegName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPeople, setRegPeople] = useState(1);
+  const [regBusy, setRegBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("event_registrations").select("event_id").eq("user_id", user.id).then(({ data }) => {
+      setRegisteredIds(new Set((data ?? []).map((r) => r.event_id)));
+    });
+  }, [user]);
+
+  const openRegister = (e: typeof EVENTS[number]) => {
+    setRegEvent(e);
+    const meta = (user?.user_metadata ?? {}) as { full_name?: string; phone?: string };
+    setRegName(meta.full_name ?? "");
+    setRegPhone(meta.phone ?? "");
+    setRegPeople(1);
+  };
+
+  const submitRegistration = async () => {
+    if (!user || !regEvent) return;
+    if (!regName || !regPhone) { toast.error("Name and phone required"); return; }
+    setRegBusy(true);
+    const { error } = await supabase.from("event_registrations").insert({
+      user_id: user.id,
+      event_id: regEvent.id,
+      event_title: regEvent.title,
+      event_ngo: regEvent.ngo,
+      event_date: regEvent.date,
+      event_location: regEvent.location,
+      full_name: regName,
+      phone: regPhone,
+      num_people: regPeople,
+    });
+    setRegBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`You're registered for ${regEvent.title} 🎉`);
+    setRegisteredIds((s) => new Set([...s, regEvent.id]));
+    setRegEvent(null);
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -380,8 +475,13 @@ function FeedPage() {
                       <div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {e.date}</div>
                       <div className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {e.location}</div>
                     </div>
-                    <Button size="sm" className={cn("mt-3 w-full rounded-full text-white", e.btn)} onClick={() => alert(`Registered for ${e.title}!`)}>
-                      Register Free
+                    <Button
+                      size="sm"
+                      disabled={registeredIds.has(e.id)}
+                      className={cn("mt-3 w-full rounded-full text-white", e.btn)}
+                      onClick={() => openRegister(e)}
+                    >
+                      {registeredIds.has(e.id) ? "✓ Registered" : "Register Free"}
                     </Button>
                   </div>
                 </article>
@@ -492,6 +592,38 @@ function FeedPage() {
           })}
         </div>
       </section>
+
+      <Dialog open={!!regEvent} onOpenChange={(o) => !o && setRegEvent(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Register for {regEvent?.title}</DialogTitle>
+            <DialogDescription>
+              {regEvent?.ngo} • {regEvent?.date} • {regEvent?.location}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Full Name</Label>
+              <Input value={regName} onChange={(e) => setRegName(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Phone</Label>
+              <Input value={regPhone} onChange={(e) => setRegPhone(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>How many people are coming?</Label>
+              <Input type="number" min={1} max={20} value={regPeople} onChange={(e) => setRegPeople(Math.max(1, Number(e.target.value) || 1))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRegEvent(null)}>Cancel</Button>
+            <Button onClick={submitRegistration} disabled={regBusy} className="bg-primary text-primary-foreground">
+              {regBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Registration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>

@@ -46,6 +46,7 @@ function AuthPage() {
 
   // volunteer
   const [skills, setSkills] = useState<string[]>([]);
+  const [volunteerNgo, setVolunteerNgo] = useState(NGO_OPTIONS[0]);
 
   // NGO
   const [ngoName, setNgoName] = useState(NGO_OPTIONS[0]);
@@ -90,7 +91,8 @@ function AuthPage() {
             full_name: fullName,
             phone,
             city,
-            ngo_name: tab === "ngo" ? ngoName : undefined,
+            ngo_name:
+              tab === "ngo" ? ngoName : tab === "volunteer" ? volunteerNgo : undefined,
             ngo_reg_number: tab === "ngo" ? ngoReg : undefined,
             skills: tab === "volunteer" ? skills.join(",") : undefined,
             role: tabRole[tab],
@@ -249,26 +251,40 @@ function AuthPage() {
               </div>
 
               {tab === "volunteer" && (
-                <div className="space-y-2">
-                  <Label>Your Skills</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {SKILLS.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => toggleSkill(s)}
-                        className={cn(
-                          "rounded-full border px-3 py-1 text-xs font-semibold transition",
-                          skills.includes(s)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background text-muted-foreground hover:border-primary"
-                        )}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                <>
+                  <div className="space-y-2">
+                    <Label>Which NGO are you volunteering for? <span className="text-destructive">*</span></Label>
+                    <select
+                      value={volunteerNgo}
+                      onChange={(e) => setVolunteerNgo(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      required
+                    >
+                      {NGO_OPTIONS.map((n) => <option key={n}>{n}</option>)}
+                    </select>
+                    <p className="text-[11px] text-muted-foreground">The supervisor of this NGO will be notified when you sign up and can assign you to help requests.</p>
                   </div>
-                </div>
+                  <div className="space-y-2">
+                    <Label>Your Skills</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {SKILLS.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => toggleSkill(s)}
+                          className={cn(
+                            "rounded-full border px-3 py-1 text-xs font-semibold transition",
+                            skills.includes(s)
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background text-muted-foreground hover:border-primary"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
 
               {tab === "ngo" && (
