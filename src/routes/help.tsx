@@ -43,8 +43,11 @@ function HelpRequestPage() {
   const [desc, setDesc] = useState("");
   const [location, setLocation] = useState("");
   const [selectedNgo, setSelectedNgo] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -58,23 +61,45 @@ function HelpRequestPage() {
     );
   };
 
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    const picked = Array.from(list).slice(0, 4 - files.length).filter((f) => {
+      if (f.size > 5 * 1024 * 1024) { toast.error(`${f.name} is over 5MB`); return false; }
+      return true;
+    });
+    setFiles((p) => [...p, ...picked]);
+    setPreviews((p) => [...p, ...picked.map((f) => URL.createObjectURL(f))]);
+  };
+  const removeFile = (i: number) => {
+    setFiles((p) => p.filter((_, idx) => idx !== i));
+    setPreviews((p) => { const u = p[i]; if (u) URL.revokeObjectURL(u); return p.filter((_, idx) => idx !== i); });
+  };
+
   const submit = async () => {
     if (!user || !type || !selectedNgo) return;
     setSubmitting(true);
-    const t = TYPES.find((x) => x.key === type)!;
-    const { error } = await supabase.from("help_requests").insert({
-      user_id: user.id,
-      category: type,
-      priority: t.priority,
-      description: desc,
-      location,
-      selected_ngo_name: selectedNgo,
-      status: "pending",
-    });
-    setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Request sent to ${selectedNgo} 🆘`);
-    setDone(true);
+    try {
+      const t = TYPES.find((x) => x.key === type)!;
+      const paths = files.length > 0 ? await uploadFiles(user.id, files) : [];
+      const { error } = await supabase.from("help_requests").insert({
+        user_id: user.id,
+        category: type,
+        priority: t.priority,
+        description: desc,
+        location,
+        selected_ngo_name: selectedNgo,
+        image_urls: paths,
+        status: "pending",
+      });
+      if (error) throw error;
+      toast.success(`Request sent to ${selectedNgo} 🆘`);
+      setDone(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not submit request";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading || !user) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
