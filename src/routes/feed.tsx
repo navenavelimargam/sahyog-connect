@@ -475,8 +475,13 @@ function FeedPage() {
                       <div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {e.date}</div>
                       <div className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {e.location}</div>
                     </div>
-                    <Button size="sm" className={cn("mt-3 w-full rounded-full text-white", e.btn)} onClick={() => alert(`Registered for ${e.title}!`)}>
-                      Register Free
+                    <Button
+                      size="sm"
+                      disabled={registeredIds.has(e.id)}
+                      className={cn("mt-3 w-full rounded-full text-white", e.btn)}
+                      onClick={() => openRegister(e)}
+                    >
+                      {registeredIds.has(e.id) ? "✓ Registered" : "Register Free"}
                     </Button>
                   </div>
                 </article>
