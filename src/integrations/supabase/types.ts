@@ -46,6 +46,51 @@ export type Database = {
           },
         ]
       }
+      event_registrations: {
+        Row: {
+          created_at: string | null
+          event_date: string | null
+          event_id: string
+          event_location: string | null
+          event_ngo: string | null
+          event_title: string
+          full_name: string
+          id: string
+          notes: string | null
+          num_people: number
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_date?: string | null
+          event_id: string
+          event_location?: string | null
+          event_ngo?: string | null
+          event_title: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          num_people?: number
+          phone: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_date?: string | null
+          event_id?: string
+          event_location?: string | null
+          event_ngo?: string | null
+          event_title?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          num_people?: number
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       help_requests: {
         Row: {
           assigned_volunteer_id: string | null
