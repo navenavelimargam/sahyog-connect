@@ -369,7 +369,7 @@ function FeedPage() {
   };
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
   useEffect(() => {

@@ -28,7 +28,7 @@ function NotificationsPage() {
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
   const load = useCallback(async () => {

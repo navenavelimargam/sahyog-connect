@@ -46,7 +46,7 @@ function ProfilePage() {
   const [tab, setTab] = useState<"posts" | "events">("posts");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
   useEffect(() => {
