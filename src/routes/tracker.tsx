@@ -7,16 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, MessageCircle, Star, Loader2, Check } from "lucide-react";
+import { Phone, MessageCircle, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { StatusTimeline } from "@/components/StatusTimeline";
 
 export const Route = createFileRoute("/tracker")({
   component: TrackerPage,
   head: () => ({ meta: [{ title: "Track Volunteer — Sahyog" }] }),
 });
-
-const STEPS = ["Request Sent", "NGO Accepted", "Assigned", "On The Way", "Delivered"];
 
 interface Tracked {
   id: string;
