@@ -143,20 +143,8 @@ function TrackerPage() {
               <div className="mt-1 font-bold">{request.category} request → {request.selected_ngo_name}</div>
               <div className="text-xs text-muted-foreground">📍 {request.location}</div>
 
-              <div className="mt-4 flex items-center justify-between gap-1">
-                {STEPS.map((s, i) => (
-                  <div key={s} className="flex flex-1 flex-col items-center text-center">
-                    <div className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold",
-                      i < active ? "bg-primary text-primary-foreground" :
-                      i === active ? "bg-accent text-accent-foreground animate-pulse" :
-                      "bg-muted text-muted-foreground"
-                    )}>
-                      {i < active ? <Check className="h-4 w-4" /> : i + 1}
-                    </div>
-                    <div className={cn("mt-1 text-[10px] font-semibold leading-tight", i <= active ? "text-foreground" : "text-muted-foreground")}>{s}</div>
-                  </div>
-                ))}
+              <div className="mt-4">
+                <StatusTimeline status={request.status} hasVolunteer={!!request.assigned_volunteer_id} updatedAt={request.created_at} />
               </div>
             </div>
 
