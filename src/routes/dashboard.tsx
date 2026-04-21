@@ -55,7 +55,7 @@ function NGODashboard() {
   const [assignFor, setAssignFor] = useState<HelpRow | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
     if (!loading && user && role && role !== "ngo_supervisor") {
       toast.error("Only NGO supervisors can access this dashboard");
       navigate({ to: "/feed" });
@@ -66,38 +66,17 @@ function NGODashboard() {
     if (!profile?.ngo_name) { setLoadingData(false); return; }
     setLoadingData(true);
 
-    // 1. Help requests addressed to this NGO
-    const { data: reqs } = await supabase
-      .from("help_requests")
-      .select("id, user_id, category, priority, description, location, status, selected_ngo_name, assigned_volunteer_id, created_at")
-      .eq("selected_ngo_name", profile.ngo_name)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const rpc = supabase.rpc as unknown as (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+    const [{ data: requestRows, error: requestError }, { data: volunteerRows, error: volunteerError }] = await Promise.all([
+      rpc("get_supervisor_help_requests"),
+      rpc("get_supervisor_volunteers"),
+    ]);
 
-    // Resolve requester names
-    const userIds = Array.from(new Set((reqs ?? []).map((r) => r.user_id)));
-    const nameMap: Record<string, string> = {};
-    if (userIds.length > 0) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
-      (profs ?? []).forEach((p) => { nameMap[p.id] = p.full_name; });
-    }
-    const enriched = (reqs ?? []).map((r) => ({ ...r, requester_name: nameMap[r.user_id] ?? "Community member" }));
+    if (requestError) toast.error(requestError.message);
+    if (volunteerError) toast.error(volunteerError.message);
 
-    // 2. Volunteers — only those who selected this NGO at signup (case-insensitive match)
-    const { data: volRoles } = await supabase.from("user_roles").select("user_id").eq("role", "volunteer");
-    const volIds = (volRoles ?? []).map((r) => r.user_id);
-    let vols: VolunteerRow[] = [];
-    if (volIds.length > 0) {
-      const { data: volProfs } = await supabase
-        .from("profiles")
-        .select("id, full_name, city, skills, rating, tasks_completed, ngo_name")
-        .in("id", volIds)
-        .ilike("ngo_name", profile.ngo_name.trim());
-      vols = (volProfs ?? []) as VolunteerRow[];
-    }
-
-    setRequests(enriched);
-    setVolunteers(vols);
+    setRequests(((requestRows as HelpRow[] | null) ?? []).slice(0, 50));
+    setVolunteers((volunteerRows as VolunteerRow[] | null) ?? []);
     setLoadingData(false);
   }, [profile?.ngo_name]);
 

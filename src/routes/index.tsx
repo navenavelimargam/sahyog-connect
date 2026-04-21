@@ -46,7 +46,7 @@ function LandingPage() {
         <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-4xl flex-col items-center justify-between px-6 py-6 text-center text-white">
           <div className="flex w-full justify-between">
             <div className="rounded-full bg-white/10 p-1 backdrop-blur"><SahyogLogo size={44} /></div>
-            <Link to="/auth" className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/20">
+            <Link to="/auth" search={{ mode: "user" }} className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/20">
               Sign In
             </Link>
           </div>
@@ -115,7 +115,7 @@ function LandingPage() {
             Sahyog connects communities in need with verified NGOs and dedicated volunteers across India. Whether it's
             food, medical care, shelter, or education — help is one tap away.
           </p>
-          <Link to="/auth">
+          <Link to="/auth" search={{ mode: "user" }}>
             <Button className="mt-8 rounded-full bg-primary px-8 py-6 text-base font-semibold text-primary-foreground hover:bg-primary/90">
               Join Sahyog Today →
             </Button>
