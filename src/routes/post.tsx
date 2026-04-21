@@ -41,7 +41,7 @@ function CreatePostPage() {
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
   const onPickFiles = (list: FileList | null) => {

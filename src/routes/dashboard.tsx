@@ -55,7 +55,7 @@ function NGODashboard() {
   const [assignFor, setAssignFor] = useState<HelpRow | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
     if (!loading && user && role && role !== "ngo_supervisor") {
       toast.error("Only NGO supervisors can access this dashboard");
       navigate({ to: "/feed" });
