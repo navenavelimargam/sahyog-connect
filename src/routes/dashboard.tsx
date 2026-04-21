@@ -218,6 +218,14 @@ function NGODashboard() {
                     </div>
                   </div>
                 </div>
+
+                {q.assigned_volunteer_id && (
+                  <div className="mt-3 rounded-xl border border-border bg-background/60 p-3">
+                    <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Live progress</div>
+                    <StatusTimeline status={q.status} hasVolunteer={!!q.assigned_volunteer_id} updatedAt={q.created_at} compact />
+                  </div>
+                )}
+
                 <div className="mt-3 flex gap-2">
                   {q.status === "pending" ? (
                     <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Assign Volunteer</Button>
