@@ -37,7 +37,7 @@ function VolunteerTasks() {
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
     if (!loading && user && role && role !== "volunteer") {
       toast.error("This page is for volunteers");
       navigate({ to: "/feed" });
