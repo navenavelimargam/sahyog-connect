@@ -66,10 +66,9 @@ function NGODashboard() {
     if (!profile?.ngo_name) { setLoadingData(false); return; }
     setLoadingData(true);
 
-    const rpc = supabase.rpc as unknown as (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
     const [{ data: requestRows, error: requestError }, { data: volunteerRows, error: volunteerError }] = await Promise.all([
-      rpc("get_supervisor_help_requests"),
-      rpc("get_supervisor_volunteers"),
+      supabase.rpc("get_supervisor_help_requests"),
+      supabase.rpc("get_supervisor_volunteers"),
     ]);
 
     if (requestError) toast.error(requestError.message);
