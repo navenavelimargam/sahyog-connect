@@ -177,15 +177,8 @@ function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next:
         </div>
       </div>
 
-      <div className="flex items-center gap-1 text-xs">
-        {STATUS_FLOW.map((s, i) => (
-          <div key={s} className="flex flex-1 flex-col items-center">
-            <div className={cn("flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold",
-              i <= idx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-            )}>{i + 1}</div>
-            <span className={cn("mt-1 capitalize", i <= idx ? "text-foreground" : "text-muted-foreground")}>{s.replace("_", " ")}</span>
-          </div>
-        ))}
+      <div className="rounded-xl border border-border bg-background/60 p-3">
+        <StatusTimeline status={task.status} hasVolunteer compact />
       </div>
 
       {task.status === "on_the_way" && (
