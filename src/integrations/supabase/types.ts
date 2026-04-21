@@ -323,6 +323,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_supervisor_help_requests: {
+        Args: never
+        Returns: {
+          assigned_volunteer_id: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          priority: string
+          requester_name: string
+          selected_ngo_name: string
+          status: string
+          user_id: string
+        }[]
+      }
+      get_supervisor_volunteers: {
+        Args: never
+        Returns: {
+          city: string
+          full_name: string
+          id: string
+          ngo_name: string
+          rating: number
+          skills: string[]
+          tasks_completed: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
