@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, MapPin, Clock, ShieldAlert, CheckCircle2, Truck, PackageCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatusTimeline } from "@/components/StatusTimeline";
 
 export const Route = createFileRoute("/tasks")({
   component: VolunteerTasks,
