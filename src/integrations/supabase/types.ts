@@ -331,6 +331,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          image_urls: string[]
           location: string
           priority: string
           requester_name: string
