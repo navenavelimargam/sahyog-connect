@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, MapPin, Clock, ShieldAlert } from "lucide-react";
+import { Loader2, Sparkles, MapPin, Clock, ShieldAlert, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusTimeline } from "@/components/StatusTimeline";
+import { SignedImage } from "@/components/SignedImage";
 
 export const Route = createFileRoute("/dashboard")({
   component: NGODashboard,
@@ -28,6 +29,7 @@ interface HelpRow {
   assigned_volunteer_id: string | null;
   created_at: string | null;
   requester_name?: string;
+  image_urls?: string[] | null;
 }
 
 interface VolunteerRow {
@@ -219,6 +221,17 @@ function NGODashboard() {
                   </div>
                 </div>
 
+                {q.image_urls && q.image_urls.length > 0 && (
+                  <div className="mt-3">
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">📸 Documentation from requester</div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {q.image_urls.slice(0, 4).map((path, i) => (
+                        <SignedImage key={i} path={path} alt={`evidence-${i}`} className="aspect-square w-full rounded-md border border-border object-cover" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {q.assigned_volunteer_id && (
                   <div className="mt-3 rounded-xl border border-border bg-background/60 p-3">
                     <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Live progress</div>
@@ -229,6 +242,10 @@ function NGODashboard() {
                 <div className="mt-3 flex gap-2">
                   {q.status === "pending" ? (
                     <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Assign Volunteer</Button>
+                  ) : q.status === "delivered" ? (
+                    <Button size="sm" onClick={() => navigate({ to: "/post" })} className="flex-1 bg-success text-success-foreground hover:bg-success/90">
+                      <Megaphone className="mr-1 h-4 w-4" /> Share Success Story
+                    </Button>
                   ) : (
                     <Button size="sm" variant="outline" onClick={() => navigate({ to: "/tracker" })} className="flex-1">View Tracker</Button>
                   )}
