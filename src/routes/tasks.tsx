@@ -6,9 +6,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, MapPin, Clock, ShieldAlert, CheckCircle2, Truck, PackageCheck } from "lucide-react";
+import { Loader2, MapPin, Clock, ShieldAlert, CheckCircle2, Truck, PackageCheck, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusTimeline } from "@/components/StatusTimeline";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/tasks")({
   component: VolunteerTasks,
@@ -204,8 +205,15 @@ function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next:
           )}
         </div>
       ) : (
-        <div className="flex items-center gap-2 rounded-xl bg-success/10 p-2 text-sm font-semibold text-success">
-          <CheckCircle2 className="h-4 w-4" /> Completed — thank you!
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-xl bg-success/10 p-2 text-sm font-semibold text-success">
+            <CheckCircle2 className="h-4 w-4" /> Completed — thank you!
+          </div>
+          <Link to="/post" className="block">
+            <Button className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <Megaphone className="mr-2 h-4 w-4" /> Share This Story as a Post
+            </Button>
+          </Link>
         </div>
       )}
     </article>

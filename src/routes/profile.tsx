@@ -43,6 +43,7 @@ function ProfilePage() {
   const [posts, setPosts] = useState<MyPost[]>([]);
   const [events, setEvents] = useState<MyEvent[]>([]);
   const [helpCount, setHelpCount] = useState(0);
+  const [membersHelped, setMembersHelped] = useState(0);
   const [tab, setTab] = useState<"posts" | "events">("posts");
 
   useEffect(() => {
@@ -59,7 +60,15 @@ function ProfilePage() {
       .then(({ data }) => setEvents((data ?? []) as MyEvent[]));
     supabase.from("help_requests").select("id", { count: "exact", head: true }).eq("user_id", user.id)
       .then(({ count }) => setHelpCount(count ?? 0));
-  }, [user]);
+    // For volunteers: count unique community members helped (delivered tasks)
+    if (role === "volunteer") {
+      supabase.from("help_requests").select("user_id").eq("assigned_volunteer_id", user.id).eq("status", "delivered")
+        .then(({ data }) => {
+          const unique = new Set((data ?? []).map((r) => r.user_id));
+          setMembersHelped(unique.size);
+        });
+    }
+  }, [user, role]);
 
   if (loading || !user) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
@@ -89,12 +98,20 @@ function ProfilePage() {
             </div>
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-            {[
-              { k: "Requests", v: helpCount },
-              { k: "Posts", v: posts.length },
-              { k: "Events", v: events.length },
-              { k: "Rating", v: profile?.rating || "5.0" },
-            ].map((s) => (
+            {(role === "volunteer"
+              ? [
+                  { k: "Helped", v: membersHelped },
+                  { k: "Tasks", v: profile?.tasks_completed ?? 0 },
+                  { k: "Posts", v: posts.length },
+                  { k: "Rating", v: (profile?.rating ?? 5).toFixed(1) },
+                ]
+              : [
+                  { k: "Requests", v: helpCount },
+                  { k: "Posts", v: posts.length },
+                  { k: "Events", v: events.length },
+                  { k: "Rating", v: profile?.rating || "5.0" },
+                ]
+            ).map((s) => (
               <div key={s.k} className="rounded-lg bg-white/10 backdrop-blur p-2">
                 <div className="text-lg font-bold">{s.v}</div>
                 <div className="text-[10px] uppercase opacity-80">{s.k}</div>

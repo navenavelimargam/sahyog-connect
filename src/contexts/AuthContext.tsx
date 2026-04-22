@@ -15,6 +15,7 @@ interface Profile {
   is_verified: boolean | null;
   rating: number | null;
   avatar_url: string | null;
+  tasks_completed: number | null;
 }
 
 interface AuthContextValue {
