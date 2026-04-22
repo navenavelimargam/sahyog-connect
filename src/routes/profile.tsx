@@ -98,12 +98,20 @@ function ProfilePage() {
             </div>
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-            {[
-              { k: "Requests", v: helpCount },
-              { k: "Posts", v: posts.length },
-              { k: "Events", v: events.length },
-              { k: "Rating", v: profile?.rating || "5.0" },
-            ].map((s) => (
+            {(role === "volunteer"
+              ? [
+                  { k: "Helped", v: membersHelped },
+                  { k: "Tasks", v: profile?.tasks_completed ?? 0 },
+                  { k: "Posts", v: posts.length },
+                  { k: "Rating", v: (profile?.rating ?? 5).toFixed(1) },
+                ]
+              : [
+                  { k: "Requests", v: helpCount },
+                  { k: "Posts", v: posts.length },
+                  { k: "Events", v: events.length },
+                  { k: "Rating", v: profile?.rating || "5.0" },
+                ]
+            ).map((s) => (
               <div key={s.k} className="rounded-lg bg-white/10 backdrop-blur p-2">
                 <div className="text-lg font-bold">{s.v}</div>
                 <div className="text-[10px] uppercase opacity-80">{s.k}</div>
