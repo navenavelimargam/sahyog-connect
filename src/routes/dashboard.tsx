@@ -30,6 +30,9 @@ interface HelpRow {
   created_at: string | null;
   requester_name?: string;
   image_urls?: string[] | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  ai_reason?: string | null;
 }
 
 interface VolunteerRow {
@@ -213,7 +216,10 @@ function NGODashboard() {
                     <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ps.chip)}>{ps.label} • {q.category}</span>
                     <div className="mt-2 font-bold text-foreground">{q.requester_name} • <span className="text-sm font-normal text-muted-foreground">{q.location}</span></div>
                     <p className="mt-1 text-sm text-foreground">"{q.description}"</p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                    {q.ai_reason && (
+                      <p className="mt-1 text-[11px] italic text-primary">🤖 AI: {q.ai_reason}</p>
+                    )}
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {q.location}</span>
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {timeAgo(q.created_at)}</span>
                       <span className="rounded-full bg-muted px-2 py-0.5 font-semibold">{q.status}</span>

@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SahyogLogo } from "@/components/SahyogLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { User, Handshake, Building2, Loader2, ArrowLeft } from "lucide-react";
+import { User, Handshake, Building2, Loader2, ArrowLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
 
 type Role = "user" | "volunteer" | "ngo_supervisor";
 type AuthMode = "user" | "volunteer" | "ngo";
@@ -52,9 +54,21 @@ function AuthPage() {
   const [ngoName, setNgoName] = useState(NGO_OPTIONS[0]);
   const [ngoReg, setNgoReg] = useState("");
 
+  // Auto-capture base GPS for signups (zero manual input).
+  const [coords, setCoords] = useState<Coords | null>(null);
+  const [geoStatus, setGeoStatus] = useState<"idle" | "detecting" | "ok" | "denied">("idle");
+
   useEffect(() => {
     if (!loading && user) navigate({ to: "/feed" });
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (authAction !== "signup" || geoStatus !== "idle") return;
+    setGeoStatus("detecting");
+    getCurrentPosition()
+      .then((c) => { setCoords(c); setGeoStatus("ok"); })
+      .catch(() => setGeoStatus("denied"));
+  }, [authAction, geoStatus]);
 
   const tabRole: Record<AuthMode, Role> = {
     user: "user",
@@ -99,11 +113,24 @@ function AuthPage() {
           },
         },
       });
-      setBusy(false);
       if (error) {
+        setBusy(false);
         toast.error(error.message);
         return;
       }
+      // Persist captured GPS to the freshly created profile (trigger created the row).
+      if (coords) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const uid = sessionData.session?.user?.id;
+        if (uid) {
+          await supabase.from("profiles").update({
+            latitude: coords.lat,
+            longitude: coords.lng,
+            last_seen_at: new Date().toISOString(),
+          }).eq("id", uid);
+        }
+      }
+      setBusy(false);
       toast.success("Welcome to Sahyog! 🎉");
       navigate({ to: "/feed" });
     } else {
@@ -130,7 +157,10 @@ function AuthPage() {
             <ArrowLeft className="h-5 w-5" />
             <SahyogLogo size={36} />
           </Link>
-          <div className="rounded-full bg-white/10"><ThemeToggle /></div>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <div className="rounded-full bg-white/10"><ThemeToggle /></div>
+          </div>
         </div>
       </header>
 
@@ -231,6 +261,23 @@ function AuthPage() {
 
           {authAction === "signup" && (
             <>
+              <div className={cn(
+                "flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-xs",
+                geoStatus === "ok" ? "border-success/40 bg-success/10" :
+                geoStatus === "denied" ? "border-destructive/40 bg-destructive/10" :
+                "border-primary/40 bg-primary/10",
+              )}>
+                <MapPin className={cn("mt-0.5 h-3.5 w-3.5 shrink-0",
+                  geoStatus === "ok" ? "text-success" : geoStatus === "denied" ? "text-destructive" : "text-primary animate-pulse")} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold">
+                    {geoStatus === "detecting" && "Capturing your base location…"}
+                    {geoStatus === "ok" && "GPS coordinates saved"}
+                    {geoStatus === "denied" && "Location permission denied (optional but recommended)"}
+                  </div>
+                  {coords && <div className="text-[10px] text-muted-foreground">{formatCoords(coords)}</div>}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Phone (+91)</Label>
                 <Input

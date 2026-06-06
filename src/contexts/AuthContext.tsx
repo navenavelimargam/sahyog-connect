@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { useVolunteerPing } from "@/hooks/useVolunteerPing";
 
 type Role = "user" | "volunteer" | "ngo_supervisor";
 
@@ -77,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (user) await loadUserData(user.id);
   };
+
+  // Background GPS ping for active volunteers (every 30s while tab is open).
+  useVolunteerPing(user?.id ?? null, role);
 
   return (
     <AuthContext.Provider value={{ user, session, profile, role, loading, signOut, refreshProfile }}>

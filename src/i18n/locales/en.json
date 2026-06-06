@@ -1,0 +1,59 @@
+{
+  "nav": { "feed": "Feed", "help": "Get Help", "tasks": "Tasks", "tracker": "Tracker", "profile": "Profile", "dashboard": "Dashboard", "notifications": "Notifications", "post": "Post" },
+  "common": {
+    "loading": "Loading…",
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "save": "Save",
+    "search": "Search NGOs, events, requests…",
+    "language": "Language",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "createAccount": "Create Account",
+    "welcome": "Welcome to Sahyog"
+  },
+  "help": {
+    "title": "🆘 Get Help Now",
+    "subtitle": "Pick a category, tell us what you need, then choose an NGO. Your GPS location is detected automatically.",
+    "category": "What kind of help?",
+    "describe": "Describe your situation",
+    "describePlaceholder": "Be specific so volunteers can help fast…",
+    "photos": "Photos (optional, up to 4 — max 5MB each)",
+    "uploadPhotos": "Tap to upload photos",
+    "addMore": "Add more",
+    "yourLocation": "Your location (auto-detected)",
+    "detecting": "Detecting your location…",
+    "locationCaptured": "Location captured",
+    "locationDenied": "Location access denied — please enable GPS to continue",
+    "retry": "Retry",
+    "chooseNgo": "Choose an NGO",
+    "ngoHint": "The NGO supervisor will receive your request and assign one of their volunteers.",
+    "review": "Review & Submit",
+    "send": "Send Help Request 🆘",
+    "sent": "Request sent successfully!",
+    "aiAnalyzing": "🤖 AI is analysing urgency…",
+    "aiClassified": "AI classified as"
+  },
+  "priority": {
+    "critical": "CRITICAL",
+    "high": "HIGH",
+    "medium": "MEDIUM",
+    "low": "LOW"
+  },
+  "auth": {
+    "loginTab": "Login",
+    "signupTab": "Register",
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "phone": "Phone (+91)",
+    "city": "City / District",
+    "capturingLocation": "Capturing your base location…",
+    "locationSaved": "GPS coordinates saved",
+    "communityTab": "Community",
+    "volunteerTab": "Volunteer",
+    "ngoTab": "NGO"
+  }
+}
