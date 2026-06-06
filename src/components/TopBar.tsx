@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { Bell, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "./ThemeToggle";
 import { SahyogLogo } from "./SahyogLogo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -13,6 +15,7 @@ interface TopBarProps {
 
 export function TopBar({ search, onSearchChange, unreadCount = 0 }: TopBarProps) {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const initials = profile?.full_name?.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "U";
 
   return (
@@ -23,12 +26,13 @@ export function TopBar({ search, onSearchChange, unreadCount = 0 }: TopBarProps)
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search NGOs, events, requests..."
+            placeholder={t("common.search")}
             value={search ?? ""}
             onChange={(e) => onSearchChange?.(e.target.value)}
             className="w-full rounded-full border border-border bg-background py-2 pl-8 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
+        <LanguageSwitcher />
         <ThemeToggle />
         <Link to="/notifications" className="relative">
           <Bell className="h-5 w-5 text-muted-foreground" />
