@@ -93,6 +93,7 @@ export type Database = {
       }
       help_requests: {
         Row: {
+          ai_reason: string | null
           assigned_volunteer_id: string | null
           category: string
           created_at: string | null
@@ -100,7 +101,9 @@ export type Database = {
           eta_minutes: number | null
           id: string
           image_urls: string[] | null
+          latitude: number | null
           location: string
+          longitude: number | null
           ngo_id: string | null
           priority: string
           selected_ngo_name: string | null
@@ -108,6 +111,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_reason?: string | null
           assigned_volunteer_id?: string | null
           category: string
           created_at?: string | null
@@ -115,7 +119,9 @@ export type Database = {
           eta_minutes?: number | null
           id?: string
           image_urls?: string[] | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           ngo_id?: string | null
           priority?: string
           selected_ngo_name?: string | null
@@ -123,6 +129,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_reason?: string | null
           assigned_volunteer_id?: string | null
           category?: string
           created_at?: string | null
@@ -130,7 +137,9 @@ export type Database = {
           eta_minutes?: number | null
           id?: string
           image_urls?: string[] | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           ngo_id?: string | null
           priority?: string
           selected_ngo_name?: string | null
@@ -250,6 +259,9 @@ export type Database = {
           full_name: string
           id: string
           is_verified: boolean | null
+          last_seen_at: string | null
+          latitude: number | null
+          longitude: number | null
           ngo_name: string | null
           ngo_reg_number: string | null
           phone: string | null
@@ -268,6 +280,9 @@ export type Database = {
           full_name?: string
           id: string
           is_verified?: boolean | null
+          last_seen_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           ngo_name?: string | null
           ngo_reg_number?: string | null
           phone?: string | null
@@ -286,6 +301,9 @@ export type Database = {
           full_name?: string
           id?: string
           is_verified?: boolean | null
+          last_seen_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           ngo_name?: string | null
           ngo_reg_number?: string | null
           phone?: string | null
@@ -326,13 +344,16 @@ export type Database = {
       get_supervisor_help_requests: {
         Args: never
         Returns: {
+          ai_reason: string
           assigned_volunteer_id: string
           category: string
           created_at: string
           description: string
           id: string
           image_urls: string[]
+          latitude: number
           location: string
+          longitude: number
           priority: string
           requester_name: string
           selected_ngo_name: string
@@ -346,6 +367,9 @@ export type Database = {
           city: string
           full_name: string
           id: string
+          last_seen_at: string
+          latitude: number
+          longitude: number
           ngo_name: string
           rating: number
           skills: string[]
