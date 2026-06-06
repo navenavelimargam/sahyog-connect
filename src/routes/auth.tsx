@@ -113,11 +113,24 @@ function AuthPage() {
           },
         },
       });
-      setBusy(false);
       if (error) {
+        setBusy(false);
         toast.error(error.message);
         return;
       }
+      // Persist captured GPS to the freshly created profile (trigger created the row).
+      if (coords) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const uid = sessionData.session?.user?.id;
+        if (uid) {
+          await supabase.from("profiles").update({
+            latitude: coords.lat,
+            longitude: coords.lng,
+            last_seen_at: new Date().toISOString(),
+          }).eq("id", uid);
+        }
+      }
+      setBusy(false);
       toast.success("Welcome to Sahyog! 🎉");
       navigate({ to: "/feed" });
     } else {
@@ -144,7 +157,10 @@ function AuthPage() {
             <ArrowLeft className="h-5 w-5" />
             <SahyogLogo size={36} />
           </Link>
-          <div className="rounded-full bg-white/10"><ThemeToggle /></div>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <div className="rounded-full bg-white/10"><ThemeToggle /></div>
+          </div>
         </div>
       </header>
 
