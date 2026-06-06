@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SahyogLogo } from "@/components/SahyogLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { User, Handshake, Building2, Loader2, ArrowLeft } from "lucide-react";
+import { User, Handshake, Building2, Loader2, ArrowLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
 
 type Role = "user" | "volunteer" | "ngo_supervisor";
 type AuthMode = "user" | "volunteer" | "ngo";
@@ -52,9 +54,21 @@ function AuthPage() {
   const [ngoName, setNgoName] = useState(NGO_OPTIONS[0]);
   const [ngoReg, setNgoReg] = useState("");
 
+  // Auto-capture base GPS for signups (zero manual input).
+  const [coords, setCoords] = useState<Coords | null>(null);
+  const [geoStatus, setGeoStatus] = useState<"idle" | "detecting" | "ok" | "denied">("idle");
+
   useEffect(() => {
     if (!loading && user) navigate({ to: "/feed" });
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (authAction !== "signup" || geoStatus !== "idle") return;
+    setGeoStatus("detecting");
+    getCurrentPosition()
+      .then((c) => { setCoords(c); setGeoStatus("ok"); })
+      .catch(() => setGeoStatus("denied"));
+  }, [authAction, geoStatus]);
 
   const tabRole: Record<AuthMode, Role> = {
     user: "user",
