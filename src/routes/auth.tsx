@@ -261,6 +261,23 @@ function AuthPage() {
 
           {authAction === "signup" && (
             <>
+              <div className={cn(
+                "flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-xs",
+                geoStatus === "ok" ? "border-success/40 bg-success/10" :
+                geoStatus === "denied" ? "border-destructive/40 bg-destructive/10" :
+                "border-primary/40 bg-primary/10",
+              )}>
+                <MapPin className={cn("mt-0.5 h-3.5 w-3.5 shrink-0",
+                  geoStatus === "ok" ? "text-success" : geoStatus === "denied" ? "text-destructive" : "text-primary animate-pulse")} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold">
+                    {geoStatus === "detecting" && "Capturing your base location…"}
+                    {geoStatus === "ok" && "GPS coordinates saved"}
+                    {geoStatus === "denied" && "Location permission denied (optional but recommended)"}
+                  </div>
+                  {coords && <div className="text-[10px] text-muted-foreground">{formatCoords(coords)}</div>}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Phone (+91)</Label>
                 <Input
