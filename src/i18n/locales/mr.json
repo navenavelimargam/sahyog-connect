@@ -1,17 +1,9 @@
 {
   "nav": { "feed": "फीड", "help": "मदत मिळवा", "tasks": "कामे", "tracker": "ट्रॅकर", "profile": "प्रोफाइल", "dashboard": "डॅशबोर्ड", "notifications": "सूचना", "post": "पोस्ट" },
   "common": {
-    "loading": "लोड होत आहे…",
-    "back": "मागे",
-    "next": "पुढे",
-    "cancel": "रद्द करा",
-    "submit": "सबमिट",
-    "save": "जतन करा",
-    "search": "एनजीओ, इव्हेंट, विनंत्या शोधा…",
-    "language": "भाषा",
-    "signIn": "साइन इन",
-    "signOut": "साइन आउट",
-    "createAccount": "खाते तयार करा",
+    "loading": "लोड होत आहे…", "back": "मागे", "next": "पुढे", "cancel": "रद्द करा", "submit": "सबमिट",
+    "save": "जतन करा", "search": "एनजीओ, इव्हेंट, विनंत्या शोधा…", "language": "भाषा",
+    "signIn": "साइन इन", "signOut": "साइन आउट", "createAccount": "खाते तयार करा",
     "welcome": "सहयोगमध्ये स्वागत आहे"
   },
   "help": {
@@ -29,31 +21,72 @@
     "locationDenied": "स्थान परवानगी नाकारली — कृपया जीपीएस चालू करा",
     "retry": "पुन्हा प्रयत्न",
     "chooseNgo": "एनजीओ निवडा",
-    "ngoHint": "एनजीओ पर्यवेक्षकाला विनंती मिळेल आणि ते स्वयंसेवक नियुक्त करतील.",
+    "ngoHint": "एनजीओ पर्यवेक्षकाला विनंती मिळेल.",
     "review": "पुनरावलोकन आणि सबमिट",
     "send": "मदतीची विनंती पाठवा 🆘",
     "sent": "विनंती यशस्वीरीत्या पाठवली!",
     "aiAnalyzing": "🤖 एआय तातडीचे विश्लेषण करत आहे…",
     "aiClassified": "एआयने वर्गीकृत केले"
   },
-  "priority": {
-    "critical": "अत्यंत गंभीर",
-    "high": "उच्च",
-    "medium": "मध्यम",
-    "low": "कमी"
-  },
+  "priority": { "critical": "अत्यंत गंभीर", "high": "उच्च", "medium": "मध्यम", "low": "कमी" },
   "auth": {
-    "loginTab": "लॉगिन",
-    "signupTab": "नोंदणी",
-    "fullName": "पूर्ण नाव",
-    "email": "ईमेल",
-    "password": "पासवर्ड",
-    "phone": "फोन (+91)",
-    "city": "शहर / जिल्हा",
-    "capturingLocation": "तुमचे मूळ स्थान कॅप्चर होत आहे…",
-    "locationSaved": "जीपीएस निर्देशांक जतन केले",
-    "communityTab": "समुदाय",
-    "volunteerTab": "स्वयंसेवक",
-    "ngoTab": "एनजीओ"
+    "loginTab": "लॉगिन", "signupTab": "नोंदणी", "fullName": "पूर्ण नाव", "email": "ईमेल",
+    "password": "पासवर्ड", "phone": "फोन (+91)", "city": "शहर / जिल्हा",
+    "capturingLocation": "तुमचे मूळ स्थान कॅप्चर होत आहे…", "locationSaved": "जीपीएस निर्देशांक जतन केले",
+    "communityTab": "समुदाय", "volunteerTab": "स्वयंसेवक", "ngoTab": "एनजीओ"
+  },
+  "feed": {
+    "categoriesTitle": "श्रेणी", "all": "सर्व", "upcomingEvents": "आगामी कार्यक्रम",
+    "registered": "नोंदणीकृत", "register": "नोंदणी करा", "comments": "टिप्पण्या",
+    "writeComment": "टिप्पणी लिहा…", "post": "पोस्ट", "share": "शेअर", "like": "आवडले"
+  },
+  "dashboard": {
+    "ngoTitle": "एनजीओ पर्यवेक्षक",
+    "pending": "प्रलंबित", "active": "सक्रिय", "volunteers": "स्वयंसेवक", "success": "यश",
+    "aiRecommendation": "एआय शिफारस",
+    "noPending": "कोणतीही प्रलंबित विनंती नाही. छान काम!",
+    "myVolunteers": "माझे स्वयंसेवक",
+    "noVolunteers": "अद्याप कोणताही स्वयंसेवक जोडलेला नाही.",
+    "riskQueue": "जोखीम प्राधान्य रांग",
+    "noRequests": "अद्याप कोणतीही विनंती नाही — लाइव्ह अपडेट येथे दिसतील.",
+    "assignVolunteer": "स्वयंसेवक नियुक्त करा",
+    "shareStory": "यशोगाथा शेअर करा",
+    "viewTracker": "ट्रॅकर पहा",
+    "liveHeatmap": "लाइव्ह मदत हीटमॅप",
+    "matchTitle": "एआय शिफारस",
+    "matchAssign": "नियुक्त करा",
+    "matchSkill": "कौशल्य जुळणी",
+    "matchAway": "किमी दूर"
+  },
+  "profile": {
+    "myPosts": "माझ्या पोस्ट", "registeredEvents": "नोंदणीकृत कार्यक्रम",
+    "helped": "मदत केली", "tasks": "कामे", "posts": "पोस्ट", "rating": "रेटिंग",
+    "requests": "विनंत्या", "events": "कार्यक्रम",
+    "noPosts": "तुम्ही अद्याप काहीही पोस्ट केले नाही.",
+    "createFirst": "तुमची पहिली पोस्ट तयार करा →",
+    "noEvents": "तुम्ही अद्याप कोणत्याही कार्यक्रमासाठी नोंदणी केली नाही.",
+    "browse": "कार्यक्रम पहा →",
+    "myHelpRequests": "माझ्या मदत विनंत्या",
+    "settings": "सेटिंग्ज आणि गोपनीयता",
+    "theme": "थीम",
+    "switchNgo": "एनजीओ पर्यवेक्षक दृश्यावर जा",
+    "logout": "लॉग आउट"
+  },
+  "tracker": {
+    "title": "🚗 लाइव्ह स्वयंसेवक ट्रॅकर",
+    "noActive": "ट्रॅक करण्यासाठी सक्रिय विनंती नाही. मदत बटण दाबा.",
+    "requestHelp": "मदत मागा",
+    "tracking": "ट्रॅकिंग",
+    "eta": "अंदाजित आगमन",
+    "arrived": "पोहोचले!",
+    "awaitingEta": "स्वयंसेवक ईटीएची वाट पाहत आहे…",
+    "awaitingAssignment": "नियुक्तीची प्रतीक्षा…",
+    "status": "स्थिती",
+    "skills": "कौशल्ये",
+    "call": "कॉल",
+    "message": "संदेश",
+    "rateTitle": "तुमच्या स्वयंसेवकाला रेट करा",
+    "experiencePlaceholder": "तुमचा अनुभव सांगा…",
+    "submitRating": "रेटिंग सबमिट करा"
   }
 }
