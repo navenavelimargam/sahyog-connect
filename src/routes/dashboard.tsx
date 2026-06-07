@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
@@ -11,6 +12,9 @@ import { Loader2, Sparkles, MapPin, Clock, ShieldAlert, Megaphone } from "lucide
 import { cn } from "@/lib/utils";
 import { StatusTimeline } from "@/components/StatusTimeline";
 import { SignedImage } from "@/components/SignedImage";
+import { HelpHeatmap } from "@/components/HelpHeatmap";
+import { rankVolunteers, type MatchVolunteer } from "@/lib/matchmaker";
+import { useDynamic } from "@/lib/dynamic-translate";
 
 export const Route = createFileRoute("/dashboard")({
   component: NGODashboard,
@@ -35,24 +39,22 @@ interface HelpRow {
   ai_reason?: string | null;
 }
 
-interface VolunteerRow {
-  id: string;
-  full_name: string;
+interface VolunteerRow extends MatchVolunteer {
   city: string | null;
-  skills: string[] | null;
-  rating: number | null;
   tasks_completed: number | null;
   ngo_name?: string | null;
+  last_seen_at?: string | null;
 }
 
-const PRIORITY_STYLE: Record<string, { border: string; bg: string; chip: string; label: string }> = {
-  critical: { border: "border-l-destructive", bg: "bg-destructive/5", chip: "bg-destructive text-destructive-foreground", label: "CRITICAL" },
-  high: { border: "border-l-accent", bg: "bg-accent/5", chip: "bg-accent text-accent-foreground", label: "HIGH" },
-  medium: { border: "border-l-warning", bg: "bg-warning/5", chip: "bg-warning text-warning-foreground", label: "MEDIUM" },
-  low: { border: "border-l-success", bg: "bg-success/5", chip: "bg-success text-success-foreground", label: "LOW" },
+const PRIORITY_STYLE: Record<string, { border: string; bg: string; chip: string; key: string }> = {
+  critical: { border: "border-l-destructive", bg: "bg-destructive/5", chip: "bg-destructive text-destructive-foreground", key: "critical" },
+  high: { border: "border-l-accent", bg: "bg-accent/5", chip: "bg-accent text-accent-foreground", key: "high" },
+  medium: { border: "border-l-warning", bg: "bg-warning/5", chip: "bg-warning text-warning-foreground", key: "medium" },
+  low: { border: "border-l-success", bg: "bg-success/5", chip: "bg-success text-success-foreground", key: "low" },
 };
 
 function NGODashboard() {
+  const { t } = useTranslation();
   const { user, loading, profile, role } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<HelpRow[]>([]);
@@ -71,15 +73,12 @@ function NGODashboard() {
   const loadData = useCallback(async () => {
     if (!profile?.ngo_name) { setLoadingData(false); return; }
     setLoadingData(true);
-
     const [{ data: requestRows, error: requestError }, { data: volunteerRows, error: volunteerError }] = await Promise.all([
       supabase.rpc("get_supervisor_help_requests"),
       supabase.rpc("get_supervisor_volunteers"),
     ]);
-
     if (requestError) toast.error(requestError.message);
     if (volunteerError) toast.error(volunteerError.message);
-
     setRequests(((requestRows as HelpRow[] | null) ?? []).slice(0, 50));
     setVolunteers((volunteerRows as VolunteerRow[] | null) ?? []);
     setLoadingData(false);
@@ -87,7 +86,6 @@ function NGODashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // realtime: any new request for this NGO refreshes the list
   useEffect(() => {
     if (!profile?.ngo_name) return;
     const ch = supabase
@@ -103,10 +101,28 @@ function NGODashboard() {
       .update({ assigned_volunteer_id: volunteerId, ngo_id: user!.id, status: "accepted" })
       .eq("id", req.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("Volunteer assigned — they have been notified ✅");
+    toast.success("Volunteer assigned ✅");
     setAssignFor(null);
     loadData();
   };
+
+  // Heatmap points
+  const heatPoints = useMemo(() =>
+    requests
+      .filter((r) => r.latitude != null && r.longitude != null)
+      .map((r) => ({
+        lat: r.latitude as number,
+        lng: r.longitude as number,
+        priority: r.priority,
+        label: `${r.category} • ${r.requester_name ?? ""}`,
+      })),
+  [requests]);
+
+  const volunteerPoints = useMemo(() =>
+    volunteers
+      .filter((v) => v.latitude != null && v.longitude != null)
+      .map((v) => ({ lat: v.latitude as number, lng: v.longitude as number, name: v.full_name })),
+  [volunteers]);
 
   if (loading || !user) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
@@ -117,8 +133,7 @@ function NGODashboard() {
         <main className="mx-auto max-w-2xl px-4 py-12 text-center">
           <ShieldAlert className="mx-auto h-12 w-12 text-destructive" />
           <h1 className="mt-3 font-display text-xl font-bold">NGO Supervisors Only</h1>
-          <p className="mt-2 text-sm text-muted-foreground">This page is for verified NGO supervisors. Switch to feed to continue.</p>
-          <Button onClick={() => navigate({ to: "/feed" })} className="mt-4 rounded-full bg-primary text-primary-foreground">Back to Feed</Button>
+          <Button onClick={() => navigate({ to: "/feed" })} className="mt-4 rounded-full bg-primary text-primary-foreground">Back</Button>
         </main>
         <BottomNav />
       </div>
@@ -137,16 +152,16 @@ function NGODashboard() {
       <header className="gradient-hero text-white shadow-elevated">
         <div className="mx-auto max-w-2xl px-4 py-5">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-xl font-bold">{profile?.ngo_name || "Your NGO"}</h1>
+            <h1 className="font-display text-xl font-bold"><DynNgo name={profile?.ngo_name || "Your NGO"} /></h1>
             <VerifiedBadge kind="ngo" className="bg-white/20 text-white" />
           </div>
-          <p className="text-sm text-white/80">Supervisor: {profile?.full_name} • {profile?.city || "India"}</p>
+          <p className="text-sm text-white/80">{t("dashboard.ngoTitle")}: {profile?.full_name} • {profile?.city || "India"}</p>
           <div className="mt-3 grid grid-cols-4 gap-2 text-center">
             {[
-              { k: "Pending", v: pending },
-              { k: "Active", v: active },
-              { k: "Volunteers", v: volunteers.length },
-              { k: "Success", v: `${successPct}%` },
+              { k: t("dashboard.pending"), v: pending },
+              { k: t("dashboard.active"), v: active },
+              { k: t("dashboard.volunteers"), v: volunteers.length },
+              { k: t("dashboard.success"), v: `${successPct}%` },
             ].map((s) => (
               <div key={s.k} className="rounded-lg bg-white/10 backdrop-blur p-2">
                 <div className="text-lg font-bold">{s.v}</div>
@@ -162,24 +177,33 @@ function NGODashboard() {
           <div className="flex items-start gap-2">
             <div className="rounded-full bg-success p-1.5"><Sparkles className="h-4 w-4 text-success-foreground" /></div>
             <div className="flex-1">
-              <div className="font-bold text-success">🤖 AI Recommendation</div>
+              <div className="font-bold text-success">🤖 {t("dashboard.aiRecommendation")}</div>
               <p className="mt-1 text-sm text-foreground">
-                {pending === 0
-                  ? "No pending requests. Great work!"
-                  : `${pending} request${pending > 1 ? "s" : ""} waiting. Sort by priority and assign your nearest skilled volunteer first.`}
+                {pending === 0 ? t("dashboard.noPending") : `${pending} ${t("dashboard.pending").toLowerCase()}`}
               </p>
             </div>
           </div>
         </div>
 
-        {/* My Volunteers panel */}
+        {/* Live heatmap */}
+        <section className="rounded-2xl border border-border bg-card p-3 shadow-card">
+          <h2 className="mb-2 px-1 font-display text-base font-bold">🗺️ {t("dashboard.liveHeatmap")}</h2>
+          {heatPoints.length === 0 && volunteerPoints.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+              No GPS data yet.
+            </div>
+          ) : (
+            <HelpHeatmap requests={heatPoints} volunteers={volunteerPoints} height={280} />
+          )}
+        </section>
+
+        {/* My Volunteers */}
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-display text-base font-bold">🙋 My Volunteers ({volunteers.length})</h2>
-            <span className="text-[11px] text-muted-foreground">For {profile?.ngo_name}</span>
+            <h2 className="font-display text-base font-bold">🙋 {t("dashboard.myVolunteers")} ({volunteers.length})</h2>
           </div>
           {volunteers.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No volunteers have joined {profile?.ngo_name} yet. When someone signs up as a volunteer for your NGO they will appear here.</p>
+            <p className="text-xs text-muted-foreground">{t("dashboard.noVolunteers")}</p>
           ) : (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {volunteers.map((v) => {
@@ -188,7 +212,7 @@ function NGODashboard() {
                   <div key={v.id} className="flex items-center gap-2 rounded-xl border border-border bg-background p-2">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{initials}</div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{v.full_name} <span className="text-[10px] text-accent">⭐ {v.rating ?? 5}</span></div>
+                      <div className="truncate text-sm font-semibold"><DynNgo name={v.full_name} /> <span className="text-[10px] text-accent">⭐ {v.rating ?? 5}</span></div>
                       <div className="truncate text-[11px] text-muted-foreground">{v.city ?? "—"} • {v.skills?.join(", ") || "General"}</div>
                     </div>
                   </div>
@@ -198,29 +222,38 @@ function NGODashboard() {
           )}
         </div>
 
-        <h2 className="px-1 font-display text-lg font-bold">📥 Risk Priority Queue</h2>
+        <h2 className="px-1 font-display text-lg font-bold">📥 {t("dashboard.riskQueue")}</h2>
 
         {loadingData ? (
           <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></div>
         ) : requests.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            No help requests addressed to <span className="font-semibold">{profile?.ngo_name}</span> yet. When someone picks your NGO from the Help screen it will appear here in real-time.
+            {t("dashboard.noRequests")}
           </div>
         ) : (
           requests.map((q) => {
             const ps = PRIORITY_STYLE[q.priority] ?? PRIORITY_STYLE.medium;
+            // Matchmaker: top candidate if pending & has GPS
+            let topMatch: ReturnType<typeof rankVolunteers>[number] | null = null;
+            if (q.status === "pending" && volunteers.length > 0) {
+              const ranks = rankVolunteers(
+                { category: q.category, priority: q.priority, latitude: q.latitude, longitude: q.longitude },
+                volunteers,
+              );
+              topMatch = ranks[0] ?? null;
+            }
             return (
               <article key={q.id} className={cn("rounded-2xl border border-l-4 border-border bg-card p-4 shadow-card", ps.border, ps.bg)}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ps.chip)}>{ps.label} • {q.category}</span>
-                    <div className="mt-2 font-bold text-foreground">{q.requester_name} • <span className="text-sm font-normal text-muted-foreground">{q.location}</span></div>
-                    <p className="mt-1 text-sm text-foreground">"{q.description}"</p>
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ps.chip)}>{t(`priority.${ps.key}`)} • <DynText text={q.category} /></span>
+                    <div className="mt-2 font-bold text-foreground"><DynText text={q.requester_name ?? ""} /> • <span className="text-sm font-normal text-muted-foreground"><DynText text={q.location} /></span></div>
+                    <p className="mt-1 text-sm text-foreground">"<DynText text={q.description} />"</p>
                     {q.ai_reason && (
-                      <p className="mt-1 text-[11px] italic text-primary">🤖 AI: {q.ai_reason}</p>
+                      <p className="mt-1 text-[11px] italic text-primary">🤖 AI: <DynText text={q.ai_reason} /></p>
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {q.location}</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> <DynText text={q.location} /></span>
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {timeAgo(q.created_at)}</span>
                       <span className="rounded-full bg-muted px-2 py-0.5 font-semibold">{q.status}</span>
                     </div>
@@ -229,7 +262,7 @@ function NGODashboard() {
 
                 {q.image_urls && q.image_urls.length > 0 && (
                   <div className="mt-3">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">📸 Documentation from requester</div>
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">📸 Documentation</div>
                     <div className="grid grid-cols-4 gap-1">
                       {q.image_urls.slice(0, 4).map((path, i) => (
                         <SignedImage key={i} path={path} alt={`evidence-${i}`} className="aspect-square w-full rounded-md border border-border object-cover" />
@@ -240,20 +273,35 @@ function NGODashboard() {
 
                 {q.assigned_volunteer_id && (
                   <div className="mt-3 rounded-xl border border-border bg-background/60 p-3">
-                    <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Live progress</div>
                     <StatusTimeline status={q.status} hasVolunteer={!!q.assigned_volunteer_id} updatedAt={q.created_at} compact />
+                  </div>
+                )}
+
+                {topMatch && (
+                  <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-primary">🤖 {t("dashboard.matchTitle")}</div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold">{topMatch.volunteer.full_name}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {topMatch.score}% • {topMatch.skillMatch}% {t("dashboard.matchSkill")}
+                          {topMatch.distanceKm != null && ` • ${topMatch.distanceKm.toFixed(1)} ${t("dashboard.matchAway")}`}
+                        </div>
+                      </div>
+                      <Button size="sm" onClick={() => assignVolunteer(q, topMatch!.volunteer.id)} className="bg-primary text-primary-foreground">{t("dashboard.matchAssign")}</Button>
+                    </div>
                   </div>
                 )}
 
                 <div className="mt-3 flex gap-2">
                   {q.status === "pending" ? (
-                    <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Assign Volunteer</Button>
+                    <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">{t("dashboard.assignVolunteer")}</Button>
                   ) : q.status === "delivered" ? (
                     <Button size="sm" onClick={() => navigate({ to: "/post" })} className="flex-1 bg-success text-success-foreground hover:bg-success/90">
-                      <Megaphone className="mr-1 h-4 w-4" /> Share Success Story
+                      <Megaphone className="mr-1 h-4 w-4" /> {t("dashboard.shareStory")}
                     </Button>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={() => navigate({ to: "/tracker" })} className="flex-1">View Tracker</Button>
+                    <Button size="sm" variant="outline" onClick={() => navigate({ to: "/tracker" })} className="flex-1">{t("dashboard.viewTracker")}</Button>
                   )}
                 </div>
               </article>
@@ -265,29 +313,34 @@ function NGODashboard() {
       {assignFor && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" onClick={() => setAssignFor(null)}>
           <div className="w-full max-w-md rounded-2xl bg-card p-4 shadow-elevated max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold">Assign a volunteer</h3>
+            <h3 className="font-display text-lg font-bold">{t("dashboard.assignVolunteer")}</h3>
             <p className="text-xs text-muted-foreground">For: {assignFor.requester_name} • {assignFor.category}</p>
             <div className="mt-3 space-y-2">
-              {volunteers.length === 0 && (
-                <div className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-                  No registered volunteers yet. Ask your team to sign up as Volunteer.
-                </div>
-              )}
-              {volunteers.map((v) => {
+              {rankVolunteers(
+                { category: assignFor.category, priority: assignFor.priority, latitude: assignFor.latitude, longitude: assignFor.longitude },
+                volunteers,
+              ).map((m) => {
+                const v = m.volunteer;
                 const initials = v.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                 return (
                   <div key={v.id} className="flex items-center gap-3 rounded-xl border border-border p-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{initials}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{v.full_name} <span className="text-xs text-accent">⭐ {v.rating ?? 5}</span></div>
-                      <div className="text-xs text-muted-foreground truncate">{v.city ?? "—"} • {v.skills?.join(", ") || "General"}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {m.score}% match • {m.skillMatch}% skills
+                        {m.distanceKm != null && ` • ${m.distanceKm.toFixed(1)} km`}
+                      </div>
                     </div>
-                    <Button size="sm" onClick={() => assignVolunteer(assignFor, v.id)} className="bg-primary text-primary-foreground">Assign</Button>
+                    <Button size="sm" onClick={() => assignVolunteer(assignFor, v.id)} className="bg-primary text-primary-foreground">{t("dashboard.matchAssign")}</Button>
                   </div>
                 );
               })}
+              {volunteers.length === 0 && (
+                <div className="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">{t("dashboard.noVolunteers")}</div>
+              )}
             </div>
-            <Button variant="ghost" className="mt-3 w-full" onClick={() => setAssignFor(null)}>Cancel</Button>
+            <Button variant="ghost" className="mt-3 w-full" onClick={() => setAssignFor(null)}>{t("common.cancel")}</Button>
           </div>
         </div>
       )}
@@ -295,6 +348,15 @@ function NGODashboard() {
       <BottomNav />
     </div>
   );
+}
+
+function DynNgo({ name }: { name: string }) {
+  const v = useDynamic(name);
+  return <>{v}</>;
+}
+function DynText({ text }: { text: string }) {
+  const v = useDynamic(text);
+  return <>{v}</>;
 }
 
 function timeAgo(iso: string | null) {
