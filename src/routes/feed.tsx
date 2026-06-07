@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Heart, MessageCircle, Share2, MapPin, Calendar, Send, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { DT } from "@/components/DT";
 
 import smileFood from "@/assets/food-distribution-women.jpg";
 import treePlant from "@/assets/tree-plantation-watering.jpg";
@@ -311,6 +313,7 @@ const SEED_POSTS: SeedPost[] = [
 interface Comment { id: string; author: string; text: string; }
 
 function FeedPage() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -445,7 +448,7 @@ function FeedPage() {
                     {c.emoji}
                   </div>
                   <span className="text-[10px] font-semibold text-foreground whitespace-nowrap max-w-[64px] text-center leading-tight">
-                    {c.label}
+                    <DT>{c.label}</DT>
                   </span>
                 </button>
               );
@@ -457,7 +460,7 @@ function FeedPage() {
       {/* Events */}
       <section className="px-3 py-4">
         <div className="mx-auto max-w-2xl">
-          <h2 className="mb-3 px-1 font-display text-lg font-bold text-foreground">📅 Upcoming Events</h2>
+          <h2 className="mb-3 px-1 font-display text-lg font-bold text-foreground">📅 {t("feed.upcomingEvents")}</h2>
           <div className="overflow-x-auto scrollbar-hide -mx-3 px-3">
             <div className="flex gap-3 pb-2">
               {filteredEvents.map((e) => (
@@ -469,11 +472,11 @@ function FeedPage() {
                     </span>
                   </div>
                   <div className="p-3">
-                    <div className="text-[11px] font-semibold text-primary">{e.ngo}</div>
-                    <h3 className="mt-1 font-display text-base font-bold leading-tight text-foreground">{e.title}</h3>
+                    <div className="text-[11px] font-semibold text-primary"><DT>{e.ngo}</DT></div>
+                    <h3 className="mt-1 font-display text-base font-bold leading-tight text-foreground"><DT>{e.title}</DT></h3>
                     <div className="mt-2 space-y-1 text-[11px] text-muted-foreground">
                       <div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {e.date}</div>
-                      <div className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {e.location}</div>
+                      <div className="flex items-center gap-1"><MapPin className="h-3 w-3" /> <DT>{e.location}</DT></div>
                     </div>
                     <Button
                       size="sm"
@@ -481,7 +484,7 @@ function FeedPage() {
                       className={cn("mt-3 w-full rounded-full text-white", e.btn)}
                       onClick={() => openRegister(e)}
                     >
-                      {registeredIds.has(e.id) ? "✓ Registered" : "Register Free"}
+                      {registeredIds.has(e.id) ? `✓ ${t("feed.registered")}` : t("feed.register")}
                     </Button>
                   </div>
                 </article>
@@ -518,22 +521,22 @@ function FeedPage() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-sm font-bold text-foreground">{p.ngo}</span>
+                      <span className="text-sm font-bold text-foreground"><DT>{p.ngo}</DT></span>
                       <VerifiedBadge kind={p.badge} />
                     </div>
-                    <div className="text-[11px] text-muted-foreground">📍 {p.location} • {p.time}</div>
+                    <div className="text-[11px] text-muted-foreground">📍 <DT>{p.location}</DT> • {p.time}</div>
                   </div>
                   {cat && (
                     <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: cat.bg, color: cat.ring }}>
-                      {cat.emoji} {cat.label}
+                      {cat.emoji} <DT>{cat.label}</DT>
                     </span>
                   )}
                 </div>
 
                 {/* Body */}
                 <div className="px-4 pt-3">
-                  <h3 className="font-display text-base font-bold text-foreground">{p.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                  <h3 className="font-display text-base font-bold text-foreground"><DT>{p.title}</DT></h3>
+                  <p className="mt-1 text-sm text-muted-foreground"><DT>{p.description}</DT></p>
                 </div>
 
                 {/* Images */}
