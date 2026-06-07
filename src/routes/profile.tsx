@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
@@ -8,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SignedImage } from "@/components/SignedImage";
+import { DT } from "@/components/DT";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileText, Bell, Settings, LogOut, ChevronRight, Building2, Calendar } from "lucide-react";
 
@@ -38,6 +40,7 @@ interface MyEvent {
 }
 
 function ProfilePage() {
+  const { t } = useTranslation();
   const { user, loading, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<MyPost[]>([]);
@@ -76,9 +79,9 @@ function ProfilePage() {
   const badgeKind = role === "ngo_supervisor" ? "ngo" : role === "volunteer" ? "volunteer" : "user";
 
   const items = [
-    { icon: FileText, label: "My Help Requests", to: "/tracker" as const },
-    { icon: Bell, label: "Notifications", to: "/notifications" as const },
-    { icon: Settings, label: "Settings & Privacy", to: "/profile" as const },
+    { icon: FileText, label: t("profile.myHelpRequests"), to: "/tracker" as const },
+    { icon: Bell, label: t("nav.notifications"), to: "/notifications" as const },
+    { icon: Settings, label: t("profile.settings"), to: "/profile" as const },
   ];
 
   return (
@@ -92,24 +95,24 @@ function ProfilePage() {
               <AvatarFallback className="bg-white/20 text-2xl font-bold text-white">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-2xl font-bold">{profile?.full_name || "Sahyog Member"}</h1>
-              <p className="text-sm text-white/80">📍 {profile?.city || "India"}{profile?.ngo_name ? ` • ${profile.ngo_name}` : ""}</p>
+              <h1 className="font-display text-2xl font-bold"><DT>{profile?.full_name || "Sahyog Member"}</DT></h1>
+              <p className="text-sm text-white/80">📍 <DT>{profile?.city || "India"}</DT>{profile?.ngo_name ? <> • <DT>{profile.ngo_name}</DT></> : null}</p>
               <div className="mt-1"><VerifiedBadge kind={badgeKind} className="bg-white/20 text-white" /></div>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2 text-center">
             {(role === "volunteer"
               ? [
-                  { k: "Helped", v: membersHelped },
-                  { k: "Tasks", v: profile?.tasks_completed ?? 0 },
-                  { k: "Posts", v: posts.length },
-                  { k: "Rating", v: (profile?.rating ?? 5).toFixed(1) },
+                  { k: t("profile.helped"), v: membersHelped },
+                  { k: t("profile.tasks"), v: profile?.tasks_completed ?? 0 },
+                  { k: t("profile.posts"), v: posts.length },
+                  { k: t("profile.rating"), v: (profile?.rating ?? 5).toFixed(1) },
                 ]
               : [
-                  { k: "Requests", v: helpCount },
-                  { k: "Posts", v: posts.length },
-                  { k: "Events", v: events.length },
-                  { k: "Rating", v: profile?.rating || "5.0" },
+                  { k: t("profile.requests"), v: helpCount },
+                  { k: t("profile.posts"), v: posts.length },
+                  { k: t("profile.events"), v: events.length },
+                  { k: t("profile.rating"), v: profile?.rating || "5.0" },
                 ]
             ).map((s) => (
               <div key={s.k} className="rounded-lg bg-white/10 backdrop-blur p-2">
@@ -125,10 +128,10 @@ function ProfilePage() {
         {/* Tabs for posts vs events */}
         <div className="grid grid-cols-2 gap-2 rounded-full border border-border bg-card p-1">
           <button onClick={() => setTab("posts")} className={`rounded-full py-2 text-sm font-semibold ${tab === "posts" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
-            📢 My Posts ({posts.length})
+            📢 {t("profile.myPosts")} ({posts.length})
           </button>
           <button onClick={() => setTab("events")} className={`rounded-full py-2 text-sm font-semibold ${tab === "events" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
-            📅 Registered Events ({events.length})
+            📅 {t("profile.registeredEvents")} ({events.length})
           </button>
         </div>
 
@@ -136,15 +139,15 @@ function ProfilePage() {
           <div className="space-y-2">
             {posts.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                You haven't posted anything yet.{" "}
-                <Link to="/post" className="font-semibold text-primary hover:underline">Create your first post →</Link>
+                {t("profile.noPosts")}{" "}
+                <Link to="/post" className="font-semibold text-primary hover:underline">{t("profile.createFirst")}</Link>
               </div>
             ) : (
               posts.map((p) => (
                 <article key={p.id} className="rounded-2xl border border-border bg-card p-3 shadow-card">
-                  <h3 className="font-display text-base font-bold">{p.title}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{p.location} • {timeAgo(p.created_at)}</p>
-                  <p className="mt-1 text-sm text-foreground line-clamp-3">{p.description}</p>
+                  <h3 className="font-display text-base font-bold"><DT>{p.title}</DT></h3>
+                  <p className="mt-1 text-xs text-muted-foreground"><DT>{p.location ?? ""}</DT> • {timeAgo(p.created_at)}</p>
+                  <p className="mt-1 text-sm text-foreground line-clamp-3"><DT>{p.description}</DT></p>
                   {p.image_urls && p.image_urls.length > 0 && (
                     <div className="mt-2 grid grid-cols-4 gap-1">
                       {p.image_urls.slice(0, 4).map((path, i) => (
@@ -162,8 +165,8 @@ function ProfilePage() {
           <div className="space-y-2">
             {events.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                You haven't registered for any events yet.{" "}
-                <Link to="/feed" className="font-semibold text-primary hover:underline">Browse events →</Link>
+                {t("profile.noEvents")}{" "}
+                <Link to="/feed" className="font-semibold text-primary hover:underline">{t("profile.browse")}</Link>
               </div>
             ) : (
               events.map((e) => (
@@ -171,10 +174,10 @@ function ProfilePage() {
                   <div className="flex items-start gap-2">
                     <Calendar className="mt-0.5 h-4 w-4 text-primary" />
                     <div className="flex-1">
-                      <h3 className="font-display text-base font-bold">{e.event_title}</h3>
-                      <p className="text-xs text-muted-foreground">{e.event_ngo} • {e.event_date}</p>
-                      <p className="text-xs text-muted-foreground">📍 {e.event_location}</p>
-                      <p className="mt-1 text-xs"><span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">✓ Registered</span> for {e.num_people} {e.num_people === 1 ? "person" : "people"}</p>
+                      <h3 className="font-display text-base font-bold"><DT>{e.event_title}</DT></h3>
+                      <p className="text-xs text-muted-foreground"><DT>{e.event_ngo ?? ""}</DT> • {e.event_date}</p>
+                      <p className="text-xs text-muted-foreground">📍 <DT>{e.event_location ?? ""}</DT></p>
+                      <p className="mt-1 text-xs"><span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">✓ {t("feed.registered")}</span></p>
                     </div>
                   </div>
                 </article>
@@ -193,20 +196,20 @@ function ProfilePage() {
           ))}
 
           <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card">
-            <span className="flex-1 font-semibold">🌙 Theme</span>
+            <span className="flex-1 font-semibold">🌙 {t("profile.theme")}</span>
             <ThemeToggle />
           </div>
 
           {role === "ngo_supervisor" && (
             <Link to="/dashboard" className="flex items-center gap-3 rounded-xl border border-primary bg-primary/10 p-4 shadow-card hover:bg-primary/20">
               <Building2 className="h-5 w-5 text-primary" />
-              <span className="flex-1 font-semibold text-primary">Switch to NGO Supervisor View</span>
+              <span className="flex-1 font-semibold text-primary">{t("profile.switchNgo")}</span>
               <ChevronRight className="h-4 w-4 text-primary" />
             </Link>
           )}
 
           <Button onClick={async () => { await signOut(); navigate({ to: "/" }); }} variant="outline" className="mt-4 w-full text-destructive hover:bg-destructive/10">
-            <LogOut className="mr-2 h-4 w-4" /> Logout
+            <LogOut className="mr-2 h-4 w-4" /> {t("profile.logout")}
           </Button>
         </div>
       </main>
