@@ -8,13 +8,14 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2, X, Sparkles, AlertTriangle } from "lucide-react";
+import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2, X, Sparkles, AlertTriangle, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { uploadFiles } from "@/lib/uploads";
 import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
 import { classifyPriority } from "@/lib/ai-priority.functions";
+import { recommendNgo } from "@/lib/ngo-matcher";
 
 export const Route = createFileRoute("/help")({
   component: HelpRequestPage,
@@ -22,10 +23,10 @@ export const Route = createFileRoute("/help")({
 });
 
 const TYPES = [
-  { key: "food", emoji: "🍱", label: "Food Emergency", color: "bg-accent text-accent-foreground", border: "border-accent" },
-  { key: "medical", emoji: "🏥", label: "Medical Emergency", color: "bg-destructive text-destructive-foreground", border: "border-destructive" },
-  { key: "shelter", emoji: "🏠", label: "Shelter Needed", color: "bg-warning text-warning-foreground", border: "border-warning" },
-  { key: "clothes", emoji: "👗", label: "Clothes / Essentials", color: "bg-success text-success-foreground", border: "border-success" },
+  { key: "food", emoji: "🍱", color: "bg-accent text-accent-foreground", border: "border-accent" },
+  { key: "medical", emoji: "🏥", color: "bg-destructive text-destructive-foreground", border: "border-destructive" },
+  { key: "shelter", emoji: "🏠", color: "bg-warning text-warning-foreground", border: "border-warning" },
+  { key: "clothes", emoji: "👗", color: "bg-success text-success-foreground", border: "border-success" },
 ];
 
 const NGO_OPTIONS = [
