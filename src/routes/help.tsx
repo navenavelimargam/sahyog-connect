@@ -228,7 +228,7 @@ function HelpRequestPage() {
             {step === 2 && (
               <section className="mt-6 space-y-4">
                 <div className="rounded-xl border border-border bg-card p-3 text-sm">
-                  <span className="font-semibold">Selected:</span> <span className="text-2xl mr-1">{selectedType?.emoji}</span> {selectedType?.label}
+                  <span className="font-semibold">{t("common.selected")}:</span> <span className="text-2xl mr-1">{selectedType?.emoji}</span> {selectedType ? t(`categories.${selectedType.key}`) : ""}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("help.describe")}</Label>
