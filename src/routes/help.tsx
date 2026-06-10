@@ -218,7 +218,7 @@ function HelpRequestPage() {
                       className={cn("rounded-2xl border-2 bg-card p-4 text-left transition hover:scale-[1.02] shadow-card", type === tp.key ? tp.border : "border-border")}
                     >
                       <div className="text-3xl">{tp.emoji}</div>
-                      <div className="mt-2 font-bold text-foreground">{tp.label}</div>
+                      <div className="mt-2 font-bold text-foreground">{t(`categories.${tp.key}`)}</div>
                     </button>
                   ))}
                 </div>
