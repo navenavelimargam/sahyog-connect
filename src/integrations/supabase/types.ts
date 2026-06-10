@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      b2b_requests: {
+        Row: {
+          category: Database["public"]["Enums"]["b2b_category"]
+          city: string | null
+          created_at: string
+          description: string
+          id: string
+          needed_by: string | null
+          ngo_id: string
+          ngo_name: string
+          quantity: string
+          status: Database["public"]["Enums"]["b2b_status"]
+          supporter_id: string | null
+          supporter_ngo_name: string | null
+          updated_at: string
+          urgency: Database["public"]["Enums"]["b2b_urgency"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["b2b_category"]
+          city?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          needed_by?: string | null
+          ngo_id: string
+          ngo_name: string
+          quantity: string
+          status?: Database["public"]["Enums"]["b2b_status"]
+          supporter_id?: string | null
+          supporter_ngo_name?: string | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["b2b_urgency"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["b2b_category"]
+          city?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          needed_by?: string | null
+          ngo_id?: string
+          ngo_name?: string
+          quantity?: string
+          status?: Database["public"]["Enums"]["b2b_status"]
+          supporter_id?: string | null
+          supporter_ngo_name?: string | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["b2b_urgency"]
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -386,6 +437,9 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "volunteer" | "ngo_supervisor"
+      b2b_category: "food_supplies" | "financial_aid" | "medical_appliances"
+      b2b_status: "open" | "fulfilling" | "closed"
+      b2b_urgency: "low" | "medium" | "high" | "critical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -514,6 +568,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "volunteer", "ngo_supervisor"],
+      b2b_category: ["food_supplies", "financial_aid", "medical_appliances"],
+      b2b_status: ["open", "fulfilling", "closed"],
+      b2b_urgency: ["low", "medium", "high", "critical"],
     },
   },
 } as const

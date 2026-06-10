@@ -8,13 +8,14 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2, X, Sparkles, AlertTriangle } from "lucide-react";
+import { Loader2, MapPin, Camera, ChevronRight, Building2, CheckCircle2, X, Sparkles, AlertTriangle, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { uploadFiles } from "@/lib/uploads";
 import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
 import { classifyPriority } from "@/lib/ai-priority.functions";
+import { recommendNgo } from "@/lib/ngo-matcher";
 
 export const Route = createFileRoute("/help")({
   component: HelpRequestPage,
@@ -22,10 +23,10 @@ export const Route = createFileRoute("/help")({
 });
 
 const TYPES = [
-  { key: "food", emoji: "🍱", label: "Food Emergency", color: "bg-accent text-accent-foreground", border: "border-accent" },
-  { key: "medical", emoji: "🏥", label: "Medical Emergency", color: "bg-destructive text-destructive-foreground", border: "border-destructive" },
-  { key: "shelter", emoji: "🏠", label: "Shelter Needed", color: "bg-warning text-warning-foreground", border: "border-warning" },
-  { key: "clothes", emoji: "👗", label: "Clothes / Essentials", color: "bg-success text-success-foreground", border: "border-success" },
+  { key: "food", emoji: "🍱", color: "bg-accent text-accent-foreground", border: "border-accent" },
+  { key: "medical", emoji: "🏥", color: "bg-destructive text-destructive-foreground", border: "border-destructive" },
+  { key: "shelter", emoji: "🏠", color: "bg-warning text-warning-foreground", border: "border-warning" },
+  { key: "clothes", emoji: "👗", color: "bg-success text-success-foreground", border: "border-success" },
 ];
 
 const NGO_OPTIONS = [
@@ -217,7 +218,7 @@ function HelpRequestPage() {
                       className={cn("rounded-2xl border-2 bg-card p-4 text-left transition hover:scale-[1.02] shadow-card", type === tp.key ? tp.border : "border-border")}
                     >
                       <div className="text-3xl">{tp.emoji}</div>
-                      <div className="mt-2 font-bold text-foreground">{tp.label}</div>
+                      <div className="mt-2 font-bold text-foreground">{t(`categories.${tp.key}`)}</div>
                     </button>
                   ))}
                 </div>
@@ -227,7 +228,7 @@ function HelpRequestPage() {
             {step === 2 && (
               <section className="mt-6 space-y-4">
                 <div className="rounded-xl border border-border bg-card p-3 text-sm">
-                  <span className="font-semibold">Selected:</span> <span className="text-2xl mr-1">{selectedType?.emoji}</span> {selectedType?.label}
+                  <span className="font-semibold">{t("common.selected")}:</span> <span className="text-2xl mr-1">{selectedType?.emoji}</span> {selectedType ? t(`categories.${selectedType.key}`) : ""}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("help.describe")}</Label>
@@ -294,6 +295,31 @@ function HelpRequestPage() {
                   </div>
                 </div>
 
+                {(() => {
+                  const rec = recommendNgo(desc, type, NGO_OPTIONS);
+                  if (!rec) return null;
+                  return (
+                    <div className="rounded-2xl border-2 border-success/40 bg-success/10 p-3 shadow-card">
+                      <div className="flex items-start gap-2">
+                        <Wand2 className="mt-0.5 h-5 w-5 text-success" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-success text-sm">{t("help.aiRecommendedNgo")}</div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-xl">{rec.ngo.emoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold truncate">{rec.ngo.name}</div>
+                              <div className="text-[11px] text-muted-foreground truncate">{t("help.aiRecommendReason")}{rec.matchedKeywords.length > 0 ? ` • ${rec.matchedKeywords.slice(0,3).join(", ")}` : ""}</div>
+                            </div>
+                            <Button size="sm" onClick={() => setSelectedNgo(rec.ngo.name)} className="bg-success text-success-foreground hover:bg-success/90 shrink-0">
+                              {t("help.useRecommendation")}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <h2 className="font-display text-lg font-bold">{t("help.chooseNgo")}</h2>
                 <p className="text-xs text-muted-foreground">{t("help.ngoHint")}</p>
                 <div className="space-y-2">
@@ -328,7 +354,7 @@ function HelpRequestPage() {
               <section className="mt-6 space-y-4">
                 <div className="rounded-2xl border border-border bg-card p-4 shadow-card space-y-3">
                   <h2 className="font-display text-lg font-bold">{t("help.review")}</h2>
-                  <div><span className="text-xs uppercase text-muted-foreground">Category</span><div className="font-semibold">{selectedType?.emoji} {selectedType?.label}</div></div>
+                  <div><span className="text-xs uppercase text-muted-foreground">{t("help.category")}</span><div className="font-semibold">{selectedType?.emoji} {selectedType ? t(`categories.${selectedType.key}`) : ""}</div></div>
                   {aiPriority && (
                     <div>
                       <span className="text-xs uppercase text-muted-foreground">AI Priority</span>

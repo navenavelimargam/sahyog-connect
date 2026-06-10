@@ -185,6 +185,10 @@ function NGODashboard() {
           </div>
         </div>
 
+        <Button onClick={() => navigate({ to: "/b2b" })} className="w-full rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-card">
+          🤝 {t("dashboard.openB2B")}
+        </Button>
+
         {/* Live heatmap */}
         <section className="rounded-2xl border border-border bg-card p-3 shadow-card">
           <h2 className="mb-2 px-1 font-display text-base font-bold">🗺️ {t("dashboard.liveHeatmap")}</h2>
