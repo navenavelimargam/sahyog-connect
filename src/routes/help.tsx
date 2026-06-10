@@ -295,6 +295,31 @@ function HelpRequestPage() {
                   </div>
                 </div>
 
+                {(() => {
+                  const rec = recommendNgo(desc, type, NGO_OPTIONS);
+                  if (!rec) return null;
+                  return (
+                    <div className="rounded-2xl border-2 border-success/40 bg-success/10 p-3 shadow-card">
+                      <div className="flex items-start gap-2">
+                        <Wand2 className="mt-0.5 h-5 w-5 text-success" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-success text-sm">{t("help.aiRecommendedNgo")}</div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-xl">{rec.ngo.emoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold truncate">{rec.ngo.name}</div>
+                              <div className="text-[11px] text-muted-foreground truncate">{t("help.aiRecommendReason")}{rec.matchedKeywords.length > 0 ? ` • ${rec.matchedKeywords.slice(0,3).join(", ")}` : ""}</div>
+                            </div>
+                            <Button size="sm" onClick={() => setSelectedNgo(rec.ngo.name)} className="bg-success text-success-foreground hover:bg-success/90 shrink-0">
+                              {t("help.useRecommendation")}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <h2 className="font-display text-lg font-bold">{t("help.chooseNgo")}</h2>
                 <p className="text-xs text-muted-foreground">{t("help.ngoHint")}</p>
                 <div className="space-y-2">
