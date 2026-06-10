@@ -329,7 +329,7 @@ function HelpRequestPage() {
               <section className="mt-6 space-y-4">
                 <div className="rounded-2xl border border-border bg-card p-4 shadow-card space-y-3">
                   <h2 className="font-display text-lg font-bold">{t("help.review")}</h2>
-                  <div><span className="text-xs uppercase text-muted-foreground">Category</span><div className="font-semibold">{selectedType?.emoji} {selectedType?.label}</div></div>
+                  <div><span className="text-xs uppercase text-muted-foreground">{t("help.category")}</span><div className="font-semibold">{selectedType?.emoji} {selectedType ? t(`categories.${selectedType.key}`) : ""}</div></div>
                   {aiPriority && (
                     <div>
                       <span className="text-xs uppercase text-muted-foreground">AI Priority</span>
