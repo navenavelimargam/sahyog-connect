@@ -1,5 +1,5 @@
 {
-  "nav": { "feed": "Feed", "help": "Get Help", "tasks": "Tasks", "tracker": "Tracker", "profile": "Profile", "dashboard": "Dashboard", "notifications": "Notifications", "post": "Post" },
+  "nav": { "feed": "Feed", "help": "Get Help", "tasks": "Tasks", "tracker": "Tracker", "profile": "Profile", "dashboard": "Dashboard", "notifications": "Notifications", "post": "Post", "b2b": "B2B Marketplace" },
   "common": {
     "loading": "Loading…",
     "back": "Back",
@@ -12,7 +12,17 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "createAccount": "Create Account",
-    "welcome": "Welcome to Sahyog"
+    "welcome": "Welcome to Sahyog",
+    "selected": "Selected",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  },
+  "categories": {
+    "food": "Food Emergency",
+    "medical": "Medical Emergency",
+    "shelter": "Shelter Needed",
+    "clothes": "Clothes / Essentials"
   },
   "help": {
     "title": "🆘 Get Help Now",
@@ -34,7 +44,14 @@
     "send": "Send Help Request 🆘",
     "sent": "Request sent successfully!",
     "aiAnalyzing": "🤖 AI is analysing urgency…",
-    "aiClassified": "AI classified as"
+    "aiClassified": "AI classified as",
+    "aiRecommendedNgo": "🤖 AI Recommended NGO",
+    "aiRecommendReason": "Best match based on your description",
+    "useRecommendation": "Use Recommendation",
+    "locationRequired": "Location is required. Please enable GPS and tap Retry above.",
+    "openTracker": "Open Tracker",
+    "backToFeed": "Back to Feed",
+    "supervisorsNotified": "supervisors have been notified. Your GPS location was sent automatically."
   },
   "priority": {
     "critical": "CRITICAL",
@@ -87,7 +104,8 @@
     "matchTitle": "AI Recommended",
     "matchAssign": "Assign",
     "matchSkill": "skill match",
-    "matchAway": "km away"
+    "matchAway": "km away",
+    "openB2B": "B2B Collaboration Marketplace"
   },
   "profile": {
     "myPosts": "My Posts",
@@ -124,5 +142,35 @@
     "rateTitle": "Rate your volunteer",
     "experiencePlaceholder": "Tell us about your experience…",
     "submitRating": "Submit Rating"
+  },
+  "b2b": {
+    "title": "🤝 B2B Collaboration Marketplace",
+    "subtitle": "Request structural help from peer NGOs or lend a hand when others face shortages.",
+    "newRequest": "New Peer Request",
+    "category": "Category",
+    "cat_food_supplies": "Food Supplies",
+    "cat_financial_aid": "Financial Aid",
+    "cat_medical_appliances": "Medical Appliances",
+    "urgency": "Urgency Level",
+    "quantity": "Quantity",
+    "quantityPlaceholder": "e.g. 500 meals, ₹50,000, 20 wheelchairs",
+    "description": "Description",
+    "descriptionPlaceholder": "Briefly describe what you need and why…",
+    "neededBy": "Needed By (optional)",
+    "post": "Post Request",
+    "peerFeed": "Peer Requests Feed",
+    "noPeerRequests": "No peer requests right now. Check back soon.",
+    "lendSupport": "Lend Support",
+    "claimed": "Claimed by you",
+    "fulfilledBy": "Being supported by",
+    "markFulfilled": "Mark as Fulfilled",
+    "myRequests": "My Requests",
+    "noMyRequests": "You haven't posted any peer requests yet.",
+    "postedBy": "Posted by",
+    "needsBy": "Needs by",
+    "supervisorsOnly": "B2B Marketplace is available only to verified NGO supervisors.",
+    "posted": "Request posted to peer NGOs ✅",
+    "claimedToast": "Thanks! You have offered support — the requesting NGO has been notified.",
+    "fulfilledToast": "Marked as fulfilled. Great teamwork!"
   }
 }
