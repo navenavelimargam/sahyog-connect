@@ -320,7 +320,9 @@ function NGODashboard() {
 
                 <div className="mt-3 flex gap-2">
                   {q.status === "pending" ? (
-                    <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">{t("dashboard.assignVolunteer")}</Button>
+                    <Button size="sm" onClick={() => setAssignFor(q)} className={cn("flex-1 text-primary-foreground", isPeerSOS ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90")}>
+                      {isPeerSOS ? "✅ Accept Request & Assign Volunteer" : t("dashboard.assignVolunteer")}
+                    </Button>
                   ) : q.status === "delivered" ? (
                     <Button size="sm" onClick={() => navigate({ to: "/post" })} className="flex-1 bg-success text-success-foreground hover:bg-success/90">
                       <Megaphone className="mr-1 h-4 w-4" /> {t("dashboard.shareStory")}
