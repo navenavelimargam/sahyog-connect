@@ -13,12 +13,16 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { uploadFiles } from "@/lib/uploads";
-import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
+import { getCurrentPosition, type Coords } from "@/lib/geolocation";
 import { classifyPriority } from "@/lib/ai-priority.functions";
 import { recommendNgo } from "@/lib/ngo-matcher";
+import { matchPeerNgo } from "@/lib/peer-ngo-match.functions";
+import { reverseGeocode } from "@/lib/reverse-geocode";
+import { LocationMicroMap } from "@/components/LocationMicroMap";
 
 export const Route = createFileRoute("/help")({
   component: HelpRequestPage,
+  validateSearch: (s: Record<string, unknown>) => ({ mode: (s.mode as "user" | "b2b") || "user" }),
   head: () => ({ meta: [{ title: "Get Help — Sahyog" }] }),
 });
 
@@ -49,9 +53,12 @@ const PRIORITY_CHIP: Record<string, string> = {
 
 function HelpRequestPage() {
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, loading, profile, role } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const isB2B = search.mode === "b2b" && role === "ngo_supervisor";
   const classify = useServerFn(classifyPriority);
+  const peerMatch = useServerFn(matchPeerNgo);
 
   const [step, setStep] = useState(1);
   const [type, setType] = useState<string | null>(null);
