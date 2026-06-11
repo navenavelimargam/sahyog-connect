@@ -255,12 +255,23 @@ function NGODashboard() {
               );
               topMatch = ranks[0] ?? null;
             }
+            const isPeerSOS = q.request_type === "ngo";
             return (
-              <article key={q.id} className={cn("rounded-2xl border border-l-4 border-border bg-card p-4 shadow-card", ps.border, ps.bg)}>
+              <article key={q.id} className={cn(
+                "rounded-2xl border border-l-4 bg-card p-4 shadow-card",
+                isPeerSOS ? "border-l-destructive border-destructive ring-2 ring-destructive/30 bg-destructive/5 animate-pulse-once" : cn(ps.border, ps.bg, "border-border"),
+              )}>
+                {isPeerSOS && (
+                  <div className="mb-2 flex items-center gap-2 rounded-lg bg-destructive px-2 py-1 text-[11px] font-bold text-destructive-foreground">
+                    🚨 PEER NGO SOS ALERT — from {q.sender_ngo_name ?? "another NGO"}
+                  </div>
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ps.chip)}>{t(`priority.${ps.key}`)} • <DynText text={q.category} /></span>
-                    <div className="mt-2 font-bold text-foreground"><DynText text={q.requester_name ?? ""} /> • <span className="text-sm font-normal text-muted-foreground"><DynText text={q.location} /></span></div>
+                    <div className="mt-2 font-bold text-foreground">
+                      {isPeerSOS ? <>🏛 {q.sender_ngo_name}</> : <DynText text={q.requester_name ?? ""} />} • <span className="text-sm font-normal text-muted-foreground"><DynText text={q.location} /></span>
+                    </div>
                     <p className="mt-1 text-sm text-foreground">"<DynText text={q.description} />"</p>
                     {q.ai_reason && (
                       <p className="mt-1 text-[11px] italic text-primary">🤖 AI: <DynText text={q.ai_reason} /></p>
@@ -272,6 +283,7 @@ function NGODashboard() {
                     </div>
                   </div>
                 </div>
+
 
                 {q.image_urls && q.image_urls.length > 0 && (
                   <div className="mt-3">
