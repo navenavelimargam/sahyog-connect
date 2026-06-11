@@ -393,7 +393,7 @@ function HelpRequestPage() {
                   <div><span className="text-xs uppercase text-muted-foreground">Description</span><div className="text-sm">{desc}</div></div>
                   <div>
                     <span className="text-xs uppercase text-muted-foreground">{t("help.yourLocation")}</span>
-                    <div className="text-sm flex items-center gap-1"><MapPin className="h-3 w-3" /> {coords ? formatCoords(coords) : "—"}</div>
+                    <div className="text-sm flex items-center gap-1"><MapPin className="h-3 w-3" /> {placeLabel || (coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : "—")}</div>
                   </div>
                   <div><span className="text-xs uppercase text-muted-foreground">NGO</span><div className="text-sm flex items-center gap-1"><Building2 className="h-3 w-3" /> {selectedNgo}</div></div>
                 </div>
