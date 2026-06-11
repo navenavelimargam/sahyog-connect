@@ -37,6 +37,9 @@ interface HelpRow {
   latitude?: number | null;
   longitude?: number | null;
   ai_reason?: string | null;
+  request_type?: string | null;
+  sender_ngo_id?: string | null;
+  sender_ngo_name?: string | null;
 }
 
 interface VolunteerRow extends MatchVolunteer {
@@ -185,8 +188,14 @@ function NGODashboard() {
           </div>
         </div>
 
-        <Button onClick={() => navigate({ to: "/b2b" })} className="w-full rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-card">
-          🤝 {t("dashboard.openB2B")}
+        <Button
+          onClick={() => navigate({ to: "/help", search: { mode: "b2b" } })}
+          className="w-full rounded-2xl bg-gradient-to-r from-destructive to-accent text-white shadow-elevated py-6 text-base font-bold animate-pulse"
+        >
+          🚨 B2B Emergency SOS — Request from Peer NGO
+        </Button>
+        <Button onClick={() => navigate({ to: "/b2b" })} variant="outline" className="w-full rounded-full">
+          🤝 {t("dashboard.openB2B")} (Shortage Marketplace)
         </Button>
 
         {/* Live heatmap */}
