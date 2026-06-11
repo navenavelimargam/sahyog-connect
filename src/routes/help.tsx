@@ -69,14 +69,16 @@ function HelpRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
-  // GPS state — captured automatically on mount, never typed.
+  // GPS + reverse-geocoded place label — captured automatically.
   const [coords, setCoords] = useState<Coords | null>(null);
+  const [placeLabel, setPlaceLabel] = useState<string>("");
   const [geoStatus, setGeoStatus] = useState<"detecting" | "ok" | "denied">("detecting");
   const [geoError, setGeoError] = useState<string>("");
 
-  // AI classification result.
+  // AI results.
   const [aiPriority, setAiPriority] = useState<{ priority: string; reason: string } | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
+  const [aiPeer, setAiPeer] = useState<{ ngoName: string; reason: string } | null>(null);
 
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -84,7 +86,7 @@ function HelpRequestPage() {
     if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
-  // Auto-trigger geolocation on mount — ZERO INPUT.
+  // Auto-trigger geolocation + Nominatim reverse-geocode — ZERO INPUT.
   const captureLocation = async () => {
     setGeoStatus("detecting");
     setGeoError("");
@@ -92,6 +94,8 @@ function HelpRequestPage() {
       const c = await getCurrentPosition();
       setCoords(c);
       setGeoStatus("ok");
+      const place = await reverseGeocode(c.lat, c.lng);
+      setPlaceLabel(place.label);
     } catch (e) {
       setGeoStatus("denied");
       setGeoError(e instanceof Error ? e.message : "Unable to detect location");
