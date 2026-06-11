@@ -142,13 +142,15 @@ function HelpRequestPage() {
         category: type,
         priority: finalPriority,
         description: desc,
-        location: formatCoords(coords),
+        location: placeLabel || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`,
         latitude: coords.lat,
         longitude: coords.lng,
         ai_reason: aiPriority?.reason ?? null,
         selected_ngo_name: selectedNgo,
         image_urls: paths,
         status: "pending",
+        request_type: isB2B ? "ngo" : "user",
+        sender_ngo_id: isB2B ? user.id : null,
       });
       if (error) throw error;
       toast.success(`${t("help.sent")} → ${selectedNgo} 🆘`);
@@ -182,16 +184,28 @@ function HelpRequestPage() {
           <div className="min-w-0 flex-1">
             <div className="font-semibold">
               {geoStatus === "detecting" && t("help.detecting")}
-              {geoStatus === "ok" && t("help.locationCaptured")}
+              {geoStatus === "ok" && (placeLabel ? `📍 ${placeLabel}` : t("help.locationCaptured"))}
               {geoStatus === "denied" && t("help.locationDenied")}
             </div>
-            {coords && <div className="text-[11px] text-muted-foreground">{formatCoords(coords)} (±{Math.round(coords.accuracy ?? 0)}m)</div>}
             {geoStatus === "denied" && geoError && <div className="text-[11px] text-muted-foreground">{geoError}</div>}
           </div>
           {geoStatus === "denied" && (
             <Button size="sm" variant="outline" onClick={captureLocation}>{t("help.retry")}</Button>
           )}
         </div>
+
+        {coords && geoStatus === "ok" && (
+          <div className="mt-3">
+            <LocationMicroMap lat={coords.lat} lng={coords.lng} height={170} label={placeLabel || undefined} />
+          </div>
+        )}
+
+        {isB2B && (
+          <div className="mt-3 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
+            <div className="font-bold text-destructive">🚨 B2B Emergency SOS</div>
+            <div className="text-xs text-muted-foreground">Posting as <b>{profile?.ngo_name}</b> — choose a peer NGO to request resources from.</div>
+          </div>
+        )}
 
         {!done && (
           <div className="mt-4 flex items-center gap-2">
