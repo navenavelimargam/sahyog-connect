@@ -286,7 +286,15 @@ function HelpRequestPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep(1)} className="flex-1">{t("common.back")}</Button>
                   <Button
-                    onClick={async () => { await runAiClassification(); setStep(3); }}
+                    onClick={async () => {
+                      await runAiClassification();
+                      if (isB2B && type) {
+                        const candidates = NGO_OPTIONS.filter((n) => n.name !== profile?.ngo_name);
+                        const r = await peerMatch({ data: { description: desc, category: type, candidates } }).catch(() => null);
+                        if (r) { setAiPeer(r); setSelectedNgo(r.ngoName); }
+                      }
+                      setStep(3);
+                    }}
                     disabled={!desc.trim()}
                     className="flex-1 bg-primary text-primary-foreground"
                   >
@@ -320,7 +328,25 @@ function HelpRequestPage() {
                   </div>
                 </div>
 
-                {(() => {
+                {isB2B && aiPeer ? (
+                  <div className="rounded-2xl border-2 border-success/40 bg-success/10 p-3 shadow-card">
+                    <div className="flex items-start gap-2">
+                      <Wand2 className="mt-0.5 h-5 w-5 text-success" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-success text-sm">🤖 AI matched peer NGO</div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold truncate">{aiPeer.ngoName}</div>
+                            <div className="text-[11px] text-muted-foreground truncate">{aiPeer.reason}</div>
+                          </div>
+                          <Button size="sm" onClick={() => setSelectedNgo(aiPeer.ngoName)} className="bg-success text-success-foreground hover:bg-success/90 shrink-0">
+                            Use match
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (() => {
                   const rec = recommendNgo(desc, type, NGO_OPTIONS);
                   if (!rec) return null;
                   return (
@@ -345,10 +371,10 @@ function HelpRequestPage() {
                   );
                 })()}
 
-                <h2 className="font-display text-lg font-bold">{t("help.chooseNgo")}</h2>
+                <h2 className="font-display text-lg font-bold">{isB2B ? "Choose peer NGO to request from" : t("help.chooseNgo")}</h2>
                 <p className="text-xs text-muted-foreground">{t("help.ngoHint")}</p>
                 <div className="space-y-2">
-                  {NGO_OPTIONS.map((n) => (
+                  {NGO_OPTIONS.filter((n) => !isB2B || n.name !== profile?.ngo_name).map((n) => (
                     <button
                       key={n.name}
                       onClick={() => setSelectedNgo(n.name)}
