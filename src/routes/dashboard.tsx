@@ -37,6 +37,9 @@ interface HelpRow {
   latitude?: number | null;
   longitude?: number | null;
   ai_reason?: string | null;
+  request_type?: string | null;
+  sender_ngo_id?: string | null;
+  sender_ngo_name?: string | null;
 }
 
 interface VolunteerRow extends MatchVolunteer {
@@ -185,8 +188,14 @@ function NGODashboard() {
           </div>
         </div>
 
-        <Button onClick={() => navigate({ to: "/b2b" })} className="w-full rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-card">
-          🤝 {t("dashboard.openB2B")}
+        <Button
+          onClick={() => navigate({ to: "/help", search: { mode: "b2b" } })}
+          className="w-full rounded-2xl bg-gradient-to-r from-destructive to-accent text-white shadow-elevated py-6 text-base font-bold animate-pulse"
+        >
+          🚨 B2B Emergency SOS — Request from Peer NGO
+        </Button>
+        <Button onClick={() => navigate({ to: "/b2b" })} variant="outline" className="w-full rounded-full">
+          🤝 {t("dashboard.openB2B")} (Shortage Marketplace)
         </Button>
 
         {/* Live heatmap */}
@@ -246,12 +255,23 @@ function NGODashboard() {
               );
               topMatch = ranks[0] ?? null;
             }
+            const isPeerSOS = q.request_type === "ngo";
             return (
-              <article key={q.id} className={cn("rounded-2xl border border-l-4 border-border bg-card p-4 shadow-card", ps.border, ps.bg)}>
+              <article key={q.id} className={cn(
+                "rounded-2xl border border-l-4 bg-card p-4 shadow-card",
+                isPeerSOS ? "border-l-destructive border-destructive ring-2 ring-destructive/30 bg-destructive/5 animate-pulse-once" : cn(ps.border, ps.bg, "border-border"),
+              )}>
+                {isPeerSOS && (
+                  <div className="mb-2 flex items-center gap-2 rounded-lg bg-destructive px-2 py-1 text-[11px] font-bold text-destructive-foreground">
+                    🚨 PEER NGO SOS ALERT — from {q.sender_ngo_name ?? "another NGO"}
+                  </div>
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ps.chip)}>{t(`priority.${ps.key}`)} • <DynText text={q.category} /></span>
-                    <div className="mt-2 font-bold text-foreground"><DynText text={q.requester_name ?? ""} /> • <span className="text-sm font-normal text-muted-foreground"><DynText text={q.location} /></span></div>
+                    <div className="mt-2 font-bold text-foreground">
+                      {isPeerSOS ? <>🏛 {q.sender_ngo_name}</> : <DynText text={q.requester_name ?? ""} />} • <span className="text-sm font-normal text-muted-foreground"><DynText text={q.location} /></span>
+                    </div>
                     <p className="mt-1 text-sm text-foreground">"<DynText text={q.description} />"</p>
                     {q.ai_reason && (
                       <p className="mt-1 text-[11px] italic text-primary">🤖 AI: <DynText text={q.ai_reason} /></p>
@@ -263,6 +283,7 @@ function NGODashboard() {
                     </div>
                   </div>
                 </div>
+
 
                 {q.image_urls && q.image_urls.length > 0 && (
                   <div className="mt-3">
@@ -299,7 +320,9 @@ function NGODashboard() {
 
                 <div className="mt-3 flex gap-2">
                   {q.status === "pending" ? (
-                    <Button size="sm" onClick={() => setAssignFor(q)} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">{t("dashboard.assignVolunteer")}</Button>
+                    <Button size="sm" onClick={() => setAssignFor(q)} className={cn("flex-1 text-primary-foreground", isPeerSOS ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90")}>
+                      {isPeerSOS ? "✅ Accept Request & Assign Volunteer" : t("dashboard.assignVolunteer")}
+                    </Button>
                   ) : q.status === "delivered" ? (
                     <Button size="sm" onClick={() => navigate({ to: "/post" })} className="flex-1 bg-success text-success-foreground hover:bg-success/90">
                       <Megaphone className="mr-1 h-4 w-4" /> {t("dashboard.shareStory")}

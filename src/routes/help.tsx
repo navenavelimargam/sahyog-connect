@@ -13,12 +13,16 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { uploadFiles } from "@/lib/uploads";
-import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
+import { getCurrentPosition, type Coords } from "@/lib/geolocation";
 import { classifyPriority } from "@/lib/ai-priority.functions";
 import { recommendNgo } from "@/lib/ngo-matcher";
+import { matchPeerNgo } from "@/lib/peer-ngo-match.functions";
+import { reverseGeocode } from "@/lib/reverse-geocode";
+import { LocationMicroMap } from "@/components/LocationMicroMap";
 
 export const Route = createFileRoute("/help")({
   component: HelpRequestPage,
+  validateSearch: (s: Record<string, unknown>) => ({ mode: (s.mode as "user" | "b2b") || "user" }),
   head: () => ({ meta: [{ title: "Get Help — Sahyog" }] }),
 });
 
@@ -49,9 +53,12 @@ const PRIORITY_CHIP: Record<string, string> = {
 
 function HelpRequestPage() {
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, loading, profile, role } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const isB2B = search.mode === "b2b" && role === "ngo_supervisor";
   const classify = useServerFn(classifyPriority);
+  const peerMatch = useServerFn(matchPeerNgo);
 
   const [step, setStep] = useState(1);
   const [type, setType] = useState<string | null>(null);
@@ -62,14 +69,16 @@ function HelpRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
-  // GPS state — captured automatically on mount, never typed.
+  // GPS + reverse-geocoded place label — captured automatically.
   const [coords, setCoords] = useState<Coords | null>(null);
+  const [placeLabel, setPlaceLabel] = useState<string>("");
   const [geoStatus, setGeoStatus] = useState<"detecting" | "ok" | "denied">("detecting");
   const [geoError, setGeoError] = useState<string>("");
 
-  // AI classification result.
+  // AI results.
   const [aiPriority, setAiPriority] = useState<{ priority: string; reason: string } | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
+  const [aiPeer, setAiPeer] = useState<{ ngoName: string; reason: string } | null>(null);
 
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -77,7 +86,7 @@ function HelpRequestPage() {
     if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
   }, [user, loading, navigate]);
 
-  // Auto-trigger geolocation on mount — ZERO INPUT.
+  // Auto-trigger geolocation + Nominatim reverse-geocode — ZERO INPUT.
   const captureLocation = async () => {
     setGeoStatus("detecting");
     setGeoError("");
@@ -85,6 +94,8 @@ function HelpRequestPage() {
       const c = await getCurrentPosition();
       setCoords(c);
       setGeoStatus("ok");
+      const place = await reverseGeocode(c.lat, c.lng);
+      setPlaceLabel(place.label);
     } catch (e) {
       setGeoStatus("denied");
       setGeoError(e instanceof Error ? e.message : "Unable to detect location");
@@ -131,13 +142,15 @@ function HelpRequestPage() {
         category: type,
         priority: finalPriority,
         description: desc,
-        location: formatCoords(coords),
+        location: placeLabel || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`,
         latitude: coords.lat,
         longitude: coords.lng,
         ai_reason: aiPriority?.reason ?? null,
         selected_ngo_name: selectedNgo,
         image_urls: paths,
         status: "pending",
+        request_type: isB2B ? "ngo" : "user",
+        sender_ngo_id: isB2B ? user.id : null,
       });
       if (error) throw error;
       toast.success(`${t("help.sent")} → ${selectedNgo} 🆘`);
@@ -171,16 +184,28 @@ function HelpRequestPage() {
           <div className="min-w-0 flex-1">
             <div className="font-semibold">
               {geoStatus === "detecting" && t("help.detecting")}
-              {geoStatus === "ok" && t("help.locationCaptured")}
+              {geoStatus === "ok" && (placeLabel ? `📍 ${placeLabel}` : t("help.locationCaptured"))}
               {geoStatus === "denied" && t("help.locationDenied")}
             </div>
-            {coords && <div className="text-[11px] text-muted-foreground">{formatCoords(coords)} (±{Math.round(coords.accuracy ?? 0)}m)</div>}
             {geoStatus === "denied" && geoError && <div className="text-[11px] text-muted-foreground">{geoError}</div>}
           </div>
           {geoStatus === "denied" && (
             <Button size="sm" variant="outline" onClick={captureLocation}>{t("help.retry")}</Button>
           )}
         </div>
+
+        {coords && geoStatus === "ok" && (
+          <div className="mt-3">
+            <LocationMicroMap lat={coords.lat} lng={coords.lng} height={170} label={placeLabel || undefined} />
+          </div>
+        )}
+
+        {isB2B && (
+          <div className="mt-3 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
+            <div className="font-bold text-destructive">🚨 B2B Emergency SOS</div>
+            <div className="text-xs text-muted-foreground">Posting as <b>{profile?.ngo_name}</b> — choose a peer NGO to request resources from.</div>
+          </div>
+        )}
 
         {!done && (
           <div className="mt-4 flex items-center gap-2">
@@ -261,7 +286,15 @@ function HelpRequestPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep(1)} className="flex-1">{t("common.back")}</Button>
                   <Button
-                    onClick={async () => { await runAiClassification(); setStep(3); }}
+                    onClick={async () => {
+                      await runAiClassification();
+                      if (isB2B && type) {
+                        const candidates = NGO_OPTIONS.filter((n) => n.name !== profile?.ngo_name);
+                        const r = await peerMatch({ data: { description: desc, category: type, candidates } }).catch(() => null);
+                        if (r) { setAiPeer(r); setSelectedNgo(r.ngoName); }
+                      }
+                      setStep(3);
+                    }}
                     disabled={!desc.trim()}
                     className="flex-1 bg-primary text-primary-foreground"
                   >
@@ -295,7 +328,25 @@ function HelpRequestPage() {
                   </div>
                 </div>
 
-                {(() => {
+                {isB2B && aiPeer ? (
+                  <div className="rounded-2xl border-2 border-success/40 bg-success/10 p-3 shadow-card">
+                    <div className="flex items-start gap-2">
+                      <Wand2 className="mt-0.5 h-5 w-5 text-success" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-success text-sm">🤖 AI matched peer NGO</div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold truncate">{aiPeer.ngoName}</div>
+                            <div className="text-[11px] text-muted-foreground truncate">{aiPeer.reason}</div>
+                          </div>
+                          <Button size="sm" onClick={() => setSelectedNgo(aiPeer.ngoName)} className="bg-success text-success-foreground hover:bg-success/90 shrink-0">
+                            Use match
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (() => {
                   const rec = recommendNgo(desc, type, NGO_OPTIONS);
                   if (!rec) return null;
                   return (
@@ -320,10 +371,10 @@ function HelpRequestPage() {
                   );
                 })()}
 
-                <h2 className="font-display text-lg font-bold">{t("help.chooseNgo")}</h2>
+                <h2 className="font-display text-lg font-bold">{isB2B ? "Choose peer NGO to request from" : t("help.chooseNgo")}</h2>
                 <p className="text-xs text-muted-foreground">{t("help.ngoHint")}</p>
                 <div className="space-y-2">
-                  {NGO_OPTIONS.map((n) => (
+                  {NGO_OPTIONS.filter((n) => !isB2B || n.name !== profile?.ngo_name).map((n) => (
                     <button
                       key={n.name}
                       onClick={() => setSelectedNgo(n.name)}
@@ -368,7 +419,7 @@ function HelpRequestPage() {
                   <div><span className="text-xs uppercase text-muted-foreground">Description</span><div className="text-sm">{desc}</div></div>
                   <div>
                     <span className="text-xs uppercase text-muted-foreground">{t("help.yourLocation")}</span>
-                    <div className="text-sm flex items-center gap-1"><MapPin className="h-3 w-3" /> {coords ? formatCoords(coords) : "—"}</div>
+                    <div className="text-sm flex items-center gap-1"><MapPin className="h-3 w-3" /> {placeLabel || (coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : "—")}</div>
                   </div>
                   <div><span className="text-xs uppercase text-muted-foreground">NGO</span><div className="text-sm flex items-center gap-1"><Building2 className="h-3 w-3" /> {selectedNgo}</div></div>
                 </div>

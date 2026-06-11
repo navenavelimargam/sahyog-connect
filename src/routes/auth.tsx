@@ -11,7 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { User, Handshake, Building2, Loader2, ArrowLeft, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCurrentPosition, formatCoords, type Coords } from "@/lib/geolocation";
+import { getCurrentPosition, type Coords } from "@/lib/geolocation";
+import { reverseGeocode } from "@/lib/reverse-geocode";
+import { LocationMicroMap } from "@/components/LocationMicroMap";
 
 type Role = "user" | "volunteer" | "ngo_supervisor";
 type AuthMode = "user" | "volunteer" | "ngo";
@@ -44,7 +46,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
 
   // volunteer
   const [skills, setSkills] = useState<string[]>([]);
@@ -54,8 +55,9 @@ function AuthPage() {
   const [ngoName, setNgoName] = useState(NGO_OPTIONS[0]);
   const [ngoReg, setNgoReg] = useState("");
 
-  // Auto-capture base GPS for signups (zero manual input).
+  // Auto-capture base GPS + reverse-geocoded city (ZERO manual location input).
   const [coords, setCoords] = useState<Coords | null>(null);
+  const [cityLabel, setCityLabel] = useState<string>("");
   const [geoStatus, setGeoStatus] = useState<"idle" | "detecting" | "ok" | "denied">("idle");
 
   useEffect(() => {
@@ -66,7 +68,12 @@ function AuthPage() {
     if (authAction !== "signup" || geoStatus !== "idle") return;
     setGeoStatus("detecting");
     getCurrentPosition()
-      .then((c) => { setCoords(c); setGeoStatus("ok"); })
+      .then(async (c) => {
+        setCoords(c);
+        setGeoStatus("ok");
+        const place = await reverseGeocode(c.lat, c.lng);
+        setCityLabel(place.label);
+      })
       .catch(() => setGeoStatus("denied"));
   }, [authAction, geoStatus]);
 
@@ -104,7 +111,7 @@ function AuthPage() {
           data: {
             full_name: fullName,
             phone,
-            city,
+            city: cityLabel,
             ngo_name:
               tab === "ngo" ? ngoName : tab === "volunteer" ? volunteerNgo : undefined,
             ngo_reg_number: tab === "ngo" ? ngoReg : undefined,
@@ -271,13 +278,15 @@ function AuthPage() {
                   geoStatus === "ok" ? "text-success" : geoStatus === "denied" ? "text-destructive" : "text-primary animate-pulse")} />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold">
-                    {geoStatus === "detecting" && "Capturing your base location…"}
-                    {geoStatus === "ok" && "GPS coordinates saved"}
-                    {geoStatus === "denied" && "Location permission denied (optional but recommended)"}
+                    {geoStatus === "detecting" && "Detecting your location…"}
+                    {geoStatus === "ok" && (cityLabel ? `📍 ${cityLabel}` : "Location captured")}
+                    {geoStatus === "denied" && "Location permission denied — please enable to continue"}
                   </div>
-                  {coords && <div className="text-[10px] text-muted-foreground">{formatCoords(coords)}</div>}
                 </div>
               </div>
+              {coords && (
+                <LocationMicroMap lat={coords.lat} lng={coords.lng} height={140} label={cityLabel || undefined} />
+              )}
               <div className="space-y-2">
                 <Label>Phone (+91)</Label>
                 <Input
@@ -288,14 +297,7 @@ function AuthPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>City / District</Label>
-                <Input
-                  placeholder="Nagpur, Maharashtra"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                />
-              </div>
+
 
               {tab === "volunteer" && (
                 <>

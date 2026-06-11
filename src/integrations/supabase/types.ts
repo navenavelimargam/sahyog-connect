@@ -157,7 +157,9 @@ export type Database = {
           longitude: number | null
           ngo_id: string | null
           priority: string
+          request_type: string
           selected_ngo_name: string | null
+          sender_ngo_id: string | null
           status: string
           user_id: string
         }
@@ -175,7 +177,9 @@ export type Database = {
           longitude?: number | null
           ngo_id?: string | null
           priority?: string
+          request_type?: string
           selected_ngo_name?: string | null
+          sender_ngo_id?: string | null
           status?: string
           user_id: string
         }
@@ -193,7 +197,9 @@ export type Database = {
           longitude?: number | null
           ngo_id?: string | null
           priority?: string
+          request_type?: string
           selected_ngo_name?: string | null
+          sender_ngo_id?: string | null
           status?: string
           user_id?: string
         }
@@ -406,8 +412,11 @@ export type Database = {
           location: string
           longitude: number
           priority: string
+          request_type: string
           requester_name: string
           selected_ngo_name: string
+          sender_ngo_id: string
+          sender_ngo_name: string
           status: string
           user_id: string
         }[]
