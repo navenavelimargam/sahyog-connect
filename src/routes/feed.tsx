@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { DT } from "@/components/DT";
+import { ShareButtons } from "@/components/ShareButtons";
+import { slugifyNgoName } from "@/lib/ngo-directory";
 
 import smileFood from "@/assets/food-distribution-women.jpg";
 import treePlant from "@/assets/tree-plantation-watering.jpg";
@@ -486,6 +488,9 @@ function FeedPage() {
                     >
                       {registeredIds.has(e.id) ? `✓ ${t("feed.registered")}` : t("feed.register")}
                     </Button>
+                    <div className="mt-3 border-t border-border pt-2">
+                      <ShareButtons title={`${e.title} by ${e.ngo}`} url={`/ngo/${slugifyNgoName(e.ngo)}`} />
+                    </div>
                   </div>
                 </article>
               ))}
@@ -560,6 +565,22 @@ function FeedPage() {
                   <button onClick={() => { navigator.clipboard?.writeText(`${p.ngo}: ${p.title}`); }} className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
                     <Share2 className="h-4 w-4" /> Share
                   </button>
+                </div>
+
+                {/* Social share row */}
+                <div className="flex items-center justify-between border-t border-border px-4 py-2">
+                  <Link
+                    to="/ngo/$ngoId"
+                    params={{ ngoId: slugifyNgoName(p.ngo) }}
+                    className="text-[11px] font-semibold text-primary hover:underline"
+                  >
+                    View NGO →
+                  </Link>
+                  <ShareButtons
+                    title={`${p.title} — ${p.ngo}`}
+                    url={`/ngo/${slugifyNgoName(p.ngo)}`}
+                    caption={`${p.title}\n\n${p.description}\n\nSeen on Sahyog.`}
+                  />
                 </div>
 
                 {/* Comments */}

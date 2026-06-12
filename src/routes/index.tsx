@@ -4,6 +4,7 @@ import { LifeBuoy, Handshake, Heart } from "lucide-react";
 import { SahyogLogo } from "@/components/SahyogLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { NGO_PARTNERS } from "@/lib/ngo-directory";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -120,6 +121,45 @@ function LandingPage() {
               Join Sahyog Today →
             </Button>
           </Link>
+        </div>
+      </section>
+
+      {/* NGO Partners */}
+      <section className="border-t border-border bg-muted/30 px-6 py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Our NGO Partners</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Verified organizations driving real impact across India. Explore their work.
+            </p>
+          </div>
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {NGO_PARTNERS.map((n) => (
+              <Link
+                key={n.id}
+                to="/ngo/$ngoId"
+                params={{ ngoId: n.id }}
+                className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-3xl ${n.color}`}>
+                    {n.logoEmoji}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate font-display text-base font-bold text-foreground">{n.name}</div>
+                    <div className="truncate text-xs text-muted-foreground">{n.tagline}</div>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 self-start rounded-full group-hover:bg-primary group-hover:text-primary-foreground"
+                >
+                  View Profile →
+                </Button>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </main>
