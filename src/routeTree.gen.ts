@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as B2bRouteImport } from './routes/b2b'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NgoNgoIdRouteImport } from './routes/ngo.$ngoId'
 
 const TrackerRoute = TrackerRouteImport.update({
   id: '/tracker',
@@ -76,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NgoNgoIdRoute = NgoNgoIdRouteImport.update({
+  id: '/ngo/$ngoId',
+  path: '/ngo/$ngoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/tasks': typeof TasksRoute
   '/tracker': typeof TrackerRoute
+  '/ngo/$ngoId': typeof NgoNgoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/tasks': typeof TasksRoute
   '/tracker': typeof TrackerRoute
+  '/ngo/$ngoId': typeof NgoNgoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/tasks': typeof TasksRoute
   '/tracker': typeof TrackerRoute
+  '/ngo/$ngoId': typeof NgoNgoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/tracker'
+    | '/ngo/$ngoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/tracker'
+    | '/ngo/$ngoId'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/tracker'
+    | '/ngo/$ngoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   TasksRoute: typeof TasksRoute
   TrackerRoute: typeof TrackerRoute
+  NgoNgoIdRoute: typeof NgoNgoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ngo/$ngoId': {
+      id: '/ngo/$ngoId'
+      path: '/ngo/$ngoId'
+      fullPath: '/ngo/$ngoId'
+      preLoaderRoute: typeof NgoNgoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,7 +287,17 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   TasksRoute: TasksRoute,
   TrackerRoute: TrackerRoute,
+  NgoNgoIdRoute: NgoNgoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
