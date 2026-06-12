@@ -488,6 +488,9 @@ function FeedPage() {
                     >
                       {registeredIds.has(e.id) ? `✓ ${t("feed.registered")}` : t("feed.register")}
                     </Button>
+                    <div className="mt-3 border-t border-border pt-2">
+                      <ShareButtons title={`${e.title} by ${e.ngo}`} url={`/ngo/${slugifyNgoName(e.ngo)}`} />
+                    </div>
                   </div>
                 </article>
               ))}
