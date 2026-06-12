@@ -33,7 +33,7 @@ export const Route = createFileRoute("/ngo/$ngoId")({
 });
 
 function NgoProfilePage() {
-  const { ngo } = Route.useLoaderData();
+  const { ngo } = Route.useLoaderData() as { ngo: NgoPartner };
   const { user } = useAuth();
   const navigate = useNavigate();
   const [following, setFollowing] = useState(false);
