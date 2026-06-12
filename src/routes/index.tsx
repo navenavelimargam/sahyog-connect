@@ -4,6 +4,7 @@ import { LifeBuoy, Handshake, Heart } from "lucide-react";
 import { SahyogLogo } from "@/components/SahyogLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { NGO_PARTNERS } from "@/lib/ngo-directory";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
