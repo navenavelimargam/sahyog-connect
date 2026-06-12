@@ -567,6 +567,22 @@ function FeedPage() {
                   </button>
                 </div>
 
+                {/* Social share row */}
+                <div className="flex items-center justify-between border-t border-border px-4 py-2">
+                  <Link
+                    to="/ngo/$ngoId"
+                    params={{ ngoId: slugifyNgoName(p.ngo) }}
+                    className="text-[11px] font-semibold text-primary hover:underline"
+                  >
+                    View NGO →
+                  </Link>
+                  <ShareButtons
+                    title={`${p.title} — ${p.ngo}`}
+                    url={`/ngo/${slugifyNgoName(p.ngo)}`}
+                    caption={`${p.title}\n\n${p.description}\n\nSeen on Sahyog.`}
+                  />
+                </div>
+
                 {/* Comments */}
                 {openComments[p.id] && (
                   <div className="border-t border-border bg-muted/40 px-4 py-3">
