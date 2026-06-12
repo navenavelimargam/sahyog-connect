@@ -97,21 +97,12 @@ function TrackerPage() {
 
   const submitRating = async () => {
     if (!request?.assigned_volunteer_id || rating === 0) return;
-    // simple rating: bump volunteer's rating by averaging towards new value (front-end demo)
-    const { data: vol } = await supabase.from("profiles").select("rating, tasks_completed").eq("id", request.assigned_volunteer_id).maybeSingle();
-    const prev = vol?.rating ?? 5;
-    const tasks = (vol?.tasks_completed ?? 0) + 1;
-    const newRating = Number((((prev * (tasks - 1)) + rating) / tasks).toFixed(2));
-    await supabase.from("profiles").update({ rating: newRating, tasks_completed: tasks }).eq("id", request.assigned_volunteer_id);
-    // Always notify the volunteer about the rating they received
-    await supabase.from("notifications").insert({
-      user_id: request.assigned_volunteer_id,
-      title: `⭐ You received a ${rating}-star rating!`,
-      message: feedback
-        ? `"${feedback}" — Your new average rating is ${newRating.toFixed(1)} ⭐`
-        : `A community member rated your help ${rating}/5. Your new average is ${newRating.toFixed(1)} ⭐. Keep up the great work!`,
-      icon: "⭐",
+    const { error } = await supabase.rpc("rate_assigned_volunteer", {
+      _request_id: request.id,
+      _rating: rating,
+      _feedback: feedback || "",
     });
+    if (error) { toast.error(error.message); return; }
     toast.success("Thanks for your feedback! 🙏");
     navigate({ to: "/feed" });
   };
