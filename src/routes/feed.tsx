@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { DT } from "@/components/DT";
+import { ShareButtons } from "@/components/ShareButtons";
+import { slugifyNgoName } from "@/lib/ngo-directory";
 
 import smileFood from "@/assets/food-distribution-women.jpg";
 import treePlant from "@/assets/tree-plantation-watering.jpg";
