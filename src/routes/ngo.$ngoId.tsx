@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SahyogLogo } from "@/components/SahyogLogo";
-import { getNgoById, NGO_PARTNERS } from "@/lib/ngo-directory";
+import { getNgoById, NGO_PARTNERS, type NgoPartner } from "@/lib/ngo-directory";
 import { useAuth } from "@/contexts/AuthContext";
 import { Calendar, MapPin, Users, CheckCircle2, Activity, Heart } from "lucide-react";
 import { toast } from "sonner";
