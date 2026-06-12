@@ -443,6 +443,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      rate_assigned_volunteer: {
+        Args: { _feedback: string; _rating: number; _request_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "user" | "volunteer" | "ngo_supervisor"
