@@ -30,7 +30,7 @@ export const translateBatch = createServerFn({ method: "POST" })
     if (data.targetLang === "en" || data.texts.length === 0) {
       return { translations: data.texts };
     }
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { translations: data.texts };
 
     const target = LANG_NAME[data.targetLang];
@@ -38,49 +38,54 @@ export const translateBatch = createServerFn({ method: "POST" })
 Rules:
 - Translate proper nouns, NGO names, and brand names phonetically into ${target} script (e.g. "Akshaya Patra" -> Marathi: "अक्षय पात्र").
 - Keep emojis, numbers, dates, URLs unchanged.
-- Output ONLY the tool call with the translations array, same length & order as input.`;
+- Output ONLY by calling the translations function with an array of the same length and order as the input.`;
 
     try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: sys },
-            { role: "user", content: JSON.stringify(data.texts) },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "translations",
-              description: `Return all strings translated into ${target}.`,
-              parameters: {
-                type: "object",
-                properties: {
-                  translations: { type: "array", items: { type: "string" } },
-                },
-                required: ["translations"],
-                additionalProperties: false,
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: sys }] },
+            contents: [
+              { role: "user", parts: [{ text: JSON.stringify(data.texts) }] },
+            ],
+            tools: [
+              {
+                functionDeclarations: [
+                  {
+                    name: "translations",
+                    description: `Return all strings translated into ${target}.`,
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        translations: { type: "array", items: { type: "string" } },
+                      },
+                      required: ["translations"],
+                    },
+                  },
+                ],
               },
+            ],
+            toolConfig: {
+              functionCallingConfig: { mode: "ANY", allowedFunctionNames: ["translations"] },
             },
-          }],
-          tool_choice: { type: "function", function: { name: "translations" } },
-        }),
-      });
+          }),
+        }
+      );
       if (!resp.ok) return { translations: data.texts };
       const json = await resp.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!args) return { translations: data.texts };
-      const parsed = JSON.parse(args) as { translations: string[] };
-      const out = parsed.translations;
+      const call = json?.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall)?.functionCall;
+      const out = call?.args?.translations;
       if (!Array.isArray(out) || out.length !== data.texts.length) {
         return { translations: data.texts };
       }
-      return { translations: out.map((s, i) => (typeof s === "string" && s.length > 0 ? s : data.texts[i])) };
+      return {
+        translations: out.map((s: unknown, i: number) =>
+          typeof s === "string" && s.length > 0 ? s : data.texts[i]
+        ),
+      };
     } catch {
       return { translations: data.texts };
     }
