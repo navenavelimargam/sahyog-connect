@@ -443,6 +443,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_supervisor_for_ngo_name: {
+        Args: { _ngo_name: string }
+        Returns: boolean
+      }
       rate_assigned_volunteer: {
         Args: { _feedback: string; _rating: number; _request_id: string }
         Returns: undefined
