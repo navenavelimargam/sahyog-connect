@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,7 @@ import { SignedImage } from "@/components/SignedImage";
 import { HelpHeatmap } from "@/components/HelpHeatmap";
 import { rankVolunteers, type MatchVolunteer } from "@/lib/matchmaker";
 import { useDynamic } from "@/lib/dynamic-translate";
+import { getSupervisorDashboardData } from "@/lib/supervisor-dashboard.functions";
 
 export const Route = createFileRoute("/dashboard")({
   component: NGODashboard,
@@ -64,6 +66,7 @@ function NGODashboard() {
   const [volunteers, setVolunteers] = useState<VolunteerRow[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [assignFor, setAssignFor] = useState<HelpRow | null>(null);
+  const fetchDashboardData = useServerFn(getSupervisorDashboardData);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
@@ -76,16 +79,16 @@ function NGODashboard() {
   const loadData = useCallback(async () => {
     if (!profile?.ngo_name) { setLoadingData(false); return; }
     setLoadingData(true);
-    const [{ data: requestRows, error: requestError }, { data: volunteerRows, error: volunteerError }] = await Promise.all([
-      supabase.rpc("get_supervisor_help_requests"),
-      supabase.rpc("get_supervisor_volunteers"),
-    ]);
-    if (requestError) toast.error(requestError.message);
-    if (volunteerError) toast.error(volunteerError.message);
-    setRequests(((requestRows as HelpRow[] | null) ?? []).slice(0, 50));
-    setVolunteers((volunteerRows as VolunteerRow[] | null) ?? []);
-    setLoadingData(false);
-  }, [profile?.ngo_name]);
+    try {
+      const data = await fetchDashboardData();
+      setRequests(data.requests.slice(0, 50));
+      setVolunteers(data.volunteers);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load dashboard data");
+    } finally {
+      setLoadingData(false);
+    }
+  }, [fetchDashboardData, profile?.ngo_name]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
