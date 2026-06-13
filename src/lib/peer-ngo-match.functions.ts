@@ -12,8 +12,6 @@ interface MatchResult {
   reason: string;
 }
 
-// AI-driven peer-NGO matcher for B2B SOS requests.
-// Uses Lovable AI (Gemini Flash) to pick the best capable peer NGO.
 export const matchPeerNgo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: MatchInput) => {
@@ -28,48 +26,66 @@ export const matchPeerNgo = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data }): Promise<MatchResult | null> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || data.candidates.length === 0) return null;
 
     const listing = data.candidates.map((c, i) => `${i + 1}. ${c.name} — tags: ${c.tags}`).join("\n");
-    const system = `You are a peer-NGO matcher for Sahyog. An NGO has posted a B2B SOS shortage request. Pick the SINGLE most capable peer NGO from the candidate list that can fulfill it based on its tags. Respond ONLY via the tool call.`;
+    const system = `You are a peer-NGO matcher for Sahyog. An NGO has posted a B2B SOS shortage request. Pick the SINGLE most capable peer NGO from the candidate list that can fulfill it based on its tags. Respond ONLY by calling the match function.`;
 
     try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: `Category: ${data.category}\nDescription: ${data.description}\n\nCandidates:\n${listing}` },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "match",
-              description: "Return the chosen peer NGO.",
-              parameters: {
-                type: "object",
-                properties: {
-                  ngoName: { type: "string", description: "Exact name of the chosen NGO from the candidates." },
-                  reason: { type: "string", description: "One short sentence on why this NGO matches." },
-                },
-                required: ["ngoName", "reason"],
-                additionalProperties: false,
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: system }] },
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `Category: ${data.category}\nDescription: ${data.description}\n\nCandidates:\n${listing}`,
+                  },
+                ],
               },
+            ],
+            tools: [
+              {
+                functionDeclarations: [
+                  {
+                    name: "match",
+                    description: "Return the chosen peer NGO.",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        ngoName: {
+                          type: "string",
+                          description: "Exact name of the chosen NGO from the candidates.",
+                        },
+                        reason: {
+                          type: "string",
+                          description: "One short sentence on why this NGO matches.",
+                        },
+                      },
+                      required: ["ngoName", "reason"],
+                    },
+                  },
+                ],
+              },
+            ],
+            toolConfig: {
+              functionCallingConfig: { mode: "ANY", allowedFunctionNames: ["match"] },
             },
-          }],
-          tool_choice: { type: "function", function: { name: "match" } },
-        }),
-      });
+          }),
+        }
+      );
       if (!resp.ok) return null;
       const json = await resp.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!args) return null;
-      const parsed = JSON.parse(args) as MatchResult;
-      if (!data.candidates.some((c) => c.name === parsed.ngoName)) return null;
-      return parsed;
+      const call = json?.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall)?.functionCall;
+      const args = call?.args as MatchResult | undefined;
+      if (!args?.ngoName || !data.candidates.some((c) => c.name === args.ngoName)) return null;
+      return { ngoName: args.ngoName, reason: String(args.reason ?? "") };
     } catch {
       return null;
     }

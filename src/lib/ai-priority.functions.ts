@@ -20,7 +20,7 @@ export const classifyPriority = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data }): Promise<ClassifyResult> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return { priority: "medium", reason: "AI unavailable — defaulted to medium." };
     }
@@ -31,52 +31,57 @@ Classify each request into exactly one priority:
 - "high": urgent, time-sensitive harm risk within hours (no food/water for a child/elderly, blocked medical access, shelter loss in storm).
 - "medium": urgent but not life-threatening (clothes/supplies after disaster, blocked roads, post-event needs).
 - "low": routine community grievances, cleanup, non-urgent requests.
-Respond ONLY with the tool call.`;
+Respond ONLY by calling the classify function.`;
 
     try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Category: ${data.category}\nDescription: ${data.description}` },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "classify",
-              description: "Return the triage priority.",
-              parameters: {
-                type: "object",
-                properties: {
-                  priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
-                  reason: { type: "string", description: "One short sentence explaining the choice." },
-                },
-                required: ["priority", "reason"],
-                additionalProperties: false,
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: `Category: ${data.category}\nDescription: ${data.description}` }],
               },
+            ],
+            tools: [
+              {
+                functionDeclarations: [
+                  {
+                    name: "classify",
+                    description: "Return the triage priority.",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
+                        reason: { type: "string", description: "One short sentence explaining the choice." },
+                      },
+                      required: ["priority", "reason"],
+                    },
+                  },
+                ],
+              },
+            ],
+            toolConfig: {
+              functionCallingConfig: { mode: "ANY", allowedFunctionNames: ["classify"] },
             },
-          }],
-          tool_choice: { type: "function", function: { name: "classify" } },
-        }),
-      });
+          }),
+        }
+      );
 
       if (!resp.ok) {
         return { priority: "medium", reason: `AI error ${resp.status} — defaulted to medium.` };
       }
       const json = await resp.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!args) return { priority: "medium", reason: "AI returned no classification." };
-      const parsed = JSON.parse(args) as ClassifyResult;
-      if (!["critical", "high", "medium", "low"].includes(parsed.priority)) {
-        return { priority: "medium", reason: "AI returned invalid label." };
+      const call = json?.candidates?.[0]?.content?.parts?.find((p: any) => p.functionCall)?.functionCall;
+      const args = call?.args;
+      if (!args || !["critical", "high", "medium", "low"].includes(args.priority)) {
+        return { priority: "medium", reason: "AI returned no/invalid classification." };
       }
-      return parsed;
+      return { priority: args.priority as Priority, reason: String(args.reason ?? "") };
     } catch (e) {
       return { priority: "medium", reason: e instanceof Error ? e.message : "AI call failed." };
     }
