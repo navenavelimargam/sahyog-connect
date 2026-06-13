@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ import { Phone, MessageCircle, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StatusTimeline } from "@/components/StatusTimeline";
+import { rateAssignedVolunteer } from "@/lib/ratings.functions";
 
 export const Route = createFileRoute("/tracker")({
   component: TrackerPage,
@@ -43,6 +45,7 @@ function TrackerPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const submitVolunteerRating = useServerFn(rateAssignedVolunteer);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", search: { mode: "user" } });
@@ -97,12 +100,12 @@ function TrackerPage() {
 
   const submitRating = async () => {
     if (!request?.assigned_volunteer_id || rating === 0) return;
-    const { error } = await supabase.rpc("rate_assigned_volunteer", {
-      _request_id: request.id,
-      _rating: rating,
-      _feedback: feedback || "",
-    });
-    if (error) { toast.error(error.message); return; }
+    try {
+      await submitVolunteerRating({ data: { requestId: request.id, rating, feedback: feedback || "" } });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit rating");
+      return;
+    }
     toast.success("Thanks for your feedback! 🙏");
     navigate({ to: "/feed" });
   };
