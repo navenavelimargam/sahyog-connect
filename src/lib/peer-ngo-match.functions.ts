@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 interface MatchInput {
   description: string;
@@ -14,6 +15,7 @@ interface MatchResult {
 // AI-driven peer-NGO matcher for B2B SOS requests.
 // Uses Lovable AI (Gemini Flash) to pick the best capable peer NGO.
 export const matchPeerNgo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: MatchInput) => {
     if (!data || !Array.isArray(data.candidates)) throw new Error("Invalid input");
     return {
