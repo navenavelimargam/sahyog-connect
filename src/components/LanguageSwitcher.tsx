@@ -10,7 +10,7 @@ import {
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const current = LANGUAGES.find((l) => l.code === i18n.resolvedLanguage) ?? LANGUAGES[0];
+  const current = LANGUAGES.find((l) => l.code === (i18n.language || i18n.resolvedLanguage)) ?? LANGUAGES[0];
 
   return (
     <DropdownMenu>

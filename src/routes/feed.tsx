@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { DT } from "@/components/DT";
 import { ShareButtons } from "@/components/ShareButtons";
 import { slugifyNgoName } from "@/lib/ngo-directory";
+// import { useDynamic } from "@/lib/dynamic-translate";
 
 import smileFood from "@/assets/food-distribution-women.jpg";
 import treePlant from "@/assets/tree-plantation-watering.jpg";
@@ -55,19 +56,31 @@ export const Route = createFileRoute("/feed")({
 });
 
 const CATEGORIES = [
-  { key: "tree", emoji: "🌳", label: "Tree Plantation", bg: "#E8F5E9", ring: "#2E7D32" },
-  { key: "blood", emoji: "🩸", label: "Blood Donation", bg: "#FFEBEE", ring: "#C62828" },
-  { key: "food", emoji: "🍱", label: "Food", bg: "#FFF3E0", ring: "#E65100" },
-  { key: "shelter", emoji: "🏠", label: "Shelter", bg: "#E3F2FD", ring: "#1565C0" },
-  { key: "medical", emoji: "💊", label: "Medical Aid", bg: "#F3E5F5", ring: "#6A1B9A" },
-  { key: "education", emoji: "📚", label: "Education", bg: "#E0F2F1", ring: "#00695C" },
-  { key: "emergency", emoji: "🚨", label: "Emergency", bg: "#FFEBEE", ring: "#B71C1C" },
-  { key: "clothes", emoji: "👗", label: "Clothes", bg: "#FFF8E1", ring: "#F57F17" },
-  { key: "water", emoji: "💧", label: "Clean Water", bg: "#E1F5FE", ring: "#0277BD" },
-  { key: "animal", emoji: "🐾", label: "Animal Care", bg: "#EFEBE9", ring: "#4E342E" },
+  { key: "tree", emoji: "🌳", bg: "#E8F5E9", ring: "#2E7D32" },
+  { key: "blood", emoji: "🩸", bg: "#FFEBEE", ring: "#C62828" },
+  { key: "food", emoji: "🍱", bg: "#FFF3E0", ring: "#E65100" },
+  { key: "shelter", emoji: "🏠", bg: "#E3F2FD", ring: "#1565C0" },
+  { key: "medical", emoji: "💊", bg: "#F3E5F5", ring: "#6A1B9A" },
+  { key: "education", emoji: "📚", bg: "#E0F2F1", ring: "#00695C" },
+  { key: "emergency", emoji: "🚨", bg: "#FFEBEE", ring: "#B71C1C" },
+  { key: "clothes", emoji: "👗", bg: "#FFF8E1", ring: "#F57F17" },
+  { key: "water", emoji: "💧", bg: "#E1F5FE", ring: "#0277BD" },
+  { key: "animal", emoji: "🐾", bg: "#EFEBE9", ring: "#4E342E" },
 ];
 
-const EVENTS = [
+interface EventCard {
+  id: string;
+  banner: string;
+  tag: string;
+  tagColor: string;
+  ngo: string;
+  title: string;
+  location: string;
+  date: string;
+  btn: string;
+}
+
+const EVENTS: EventCard[] = [
   { id: "e1", banner: bloodPoster, tag: "🩸 Blood Donation", tagColor: "bg-destructive text-destructive-foreground", ngo: "Indian Red Cross Society", title: "Blood Donation Camp", date: "14 May 2025 • 9:00 AM", location: "Community Centre, Nagpur", btn: "bg-destructive hover:bg-destructive/90" },
   { id: "e2", banner: treeGroup, tag: "🌳 Environment", tagColor: "bg-success text-success-foreground", ngo: "Green Yatra", title: "Green Drive Sunday", date: "5 May 2025 • 7:00 AM", location: "Futala Lake, Nagpur", btn: "bg-success hover:bg-success/90" },
   { id: "e3", banner: medical, tag: "💊 Medical", tagColor: "bg-chart-4 text-white", ngo: "Médecins Sans Frontières India", title: "Free Health & Dental Camp", date: "1 May 2025 • 10:00 AM", location: "Kalamna Ground, Nagpur", btn: "bg-chart-4 hover:bg-chart-4/90" },
@@ -449,9 +462,9 @@ function FeedPage() {
                   >
                     {c.emoji}
                   </div>
-                  <span className="text-[10px] font-semibold text-foreground whitespace-nowrap max-w-[64px] text-center leading-tight">
-                    <DT>{c.label}</DT>
-                  </span>
+                    <span className="text-[10px] font-semibold text-foreground whitespace-nowrap max-w-[64px] text-center leading-tight">
+                      {t(`feedCategories.${c.key}`)}
+                    </span>
                 </button>
               );
             })}
@@ -470,7 +483,7 @@ function FeedPage() {
                   <div className="relative h-32 w-full overflow-hidden">
                     <img src={e.banner} alt={e.title} className="h-full w-full object-cover" />
                     <span className={cn("absolute top-2 left-2 rounded-full px-2 py-0.5 text-[10px] font-bold", e.tagColor)}>
-                      {e.tag}
+                      <DT>{e.tag}</DT>
                     </span>
                   </div>
                   <div className="p-3">
@@ -494,7 +507,7 @@ function FeedPage() {
                   </div>
                 </article>
               ))}
-              {filteredEvents.length === 0 && <div className="px-2 py-8 text-sm text-muted-foreground">No events match your search.</div>}
+              {filteredEvents.length === 0 && <div className="px-2 py-8 text-sm text-muted-foreground">{t("feed.noEventsMatch")}</div>}
             </div>
           </div>
         </div>
@@ -503,14 +516,14 @@ function FeedPage() {
       {/* Posts */}
       <section className="px-3 pb-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <h2 className="px-1 font-display text-lg font-bold text-foreground">📢 Community Feed</h2>
-          <Link to="/post"><Button size="sm" variant="outline" className="rounded-full"><Plus className="mr-1 h-4 w-4" /> Post</Button></Link>
+          <h2 className="px-1 font-display text-lg font-bold text-foreground">📢 {t("feed.communityFeed")}</h2>
+          <Link to="/post"><Button size="sm" variant="outline" className="rounded-full"><Plus className="mr-1 h-4 w-4" /> {t("feed.post")}</Button></Link>
         </div>
 
         <div className="mx-auto mt-3 max-w-2xl space-y-4">
           {filtered.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              No posts match. Try a different category or search.
+              {t("feed.noPostsMatch")}
             </div>
           )}
           {filtered.map((p) => {
@@ -533,7 +546,7 @@ function FeedPage() {
                   </div>
                   {cat && (
                     <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: cat.bg, color: cat.ring }}>
-                      {cat.emoji} <DT>{cat.label}</DT>
+                      {cat.emoji} {t(`feedCategories.${cat.key}`)}
                     </span>
                   )}
                 </div>
@@ -560,10 +573,10 @@ function FeedPage() {
                     Helpful ({likes[p.id]?.count ?? 0})
                   </button>
                   <button onClick={() => setOpenComments((o) => ({ ...o, [p.id]: !o[p.id] }))} className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
-                    <MessageCircle className="h-4 w-4" /> Comment
+                    <MessageCircle className="h-4 w-4" /> {t("feed.comment")}
                   </button>
                   <button onClick={() => { navigator.clipboard?.writeText(`${p.ngo}: ${p.title}`); }} className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
-                    <Share2 className="h-4 w-4" /> Share
+                    <Share2 className="h-4 w-4" /> {t("feed.share")}
                   </button>
                 </div>
 
@@ -594,7 +607,7 @@ function FeedPage() {
                         </div>
                       ))}
                       {(comments[p.id]?.length ?? 0) === 0 && (
-                        <div className="text-xs text-muted-foreground">Be the first to comment ✨</div>
+                        <div className="text-xs text-muted-foreground">{t("feed.beTheFirst")}</div>
                       )}
                     </div>
                     <div className="mt-3 flex gap-2">
@@ -602,7 +615,7 @@ function FeedPage() {
                         value={commentDrafts[p.id] ?? ""}
                         onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
                         onKeyDown={(e) => { if (e.key === "Enter") submitComment(p.id); }}
-                        placeholder="Write a comment…"
+                        placeholder={t("feed.writeComment")}
                         className="flex-1 rounded-full border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
                       <Button size="icon" onClick={() => submitComment(p.id)} className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
@@ -652,4 +665,10 @@ function FeedPage() {
       <BottomNav />
     </div>
   );
+}
+
+function TranslatedFeedText({ i18nKey, fallback }: { i18nKey: string; fallback: string }) {
+  const { t, i18n } = useTranslation();
+  const dynamicFallback = useDynamic(fallback);
+  return <>{i18n.exists(i18nKey) ? t(i18nKey) : dynamicFallback}</>;
 }

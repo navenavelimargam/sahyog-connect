@@ -48,25 +48,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
+    const initializeSession = async (sess: Session | null) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
+      if (!sess?.user) {
+        setProfile(null);
+        setRole(null);
+        if (mounted) setLoading(false);
+        return;
+      }
+
+      try {
+        await loadUserData(sess.user.id);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        setTimeout(() => { loadUserData(sess.user.id); }, 0);
+        loadUserData(sess.user.id).finally(() => {
+          if (mounted) setLoading(false);
+        });
       } else {
         setProfile(null);
         setRole(null);
+        if (mounted) setLoading(false);
       }
     });
 
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) loadUserData(sess.user.id);
-      setLoading(false);
+      initializeSession(sess);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

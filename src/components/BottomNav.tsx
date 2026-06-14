@@ -2,6 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Home, User, LifeBuoy, LayoutDashboard, ClipboardList, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+// import { useTranslation } from "react-i18next";
 
 type NavTo = "/feed" | "/profile" | "/help" | "/dashboard" | "/tasks" | "/notifications" | "/tracker";
 type Item = { to: NavTo; icon: typeof Home; label: string; center?: boolean };
@@ -9,6 +10,7 @@ type Item = { to: NavTo; icon: typeof Home; label: string; center?: boolean };
 export function BottomNav() {
   const loc = useLocation();
   const { role } = useAuth();
+  // const { t } = useTranslation();
 
   // Role-based items. The center "Help" button is always there for the requesting flow.
   let items: Item[];
@@ -43,6 +45,7 @@ export function BottomNav() {
       <div className="mx-auto flex max-w-2xl items-end justify-around px-2 py-2">
         {items.map(({ to, icon: Icon, label, center }) => {
           const active = loc.pathname === to || (to === "/feed" && loc.pathname === "/");
+          // const label = t(label);
           if (center) {
             return (
               <Link key={to} to={to} className="-mt-6 flex flex-col items-center">

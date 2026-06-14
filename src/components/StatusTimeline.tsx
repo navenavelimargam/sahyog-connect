@@ -1,10 +1,11 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export const TRACKER_STEPS = [
-  { key: "accepted", label: "Request Accepted", desc: "NGO has accepted your request and is assigning a volunteer" },
-  { key: "on_the_way", label: "On The Way", desc: "Your volunteer is heading to your location" },
-  { key: "delivered", label: "Delivered", desc: "Help has been delivered — thank you for using Sahyog" },
+  { key: "accepted", label: "tracker.accepted.label", desc: "tracker.accepted.desc" },
+  { key: "on_the_way", label: "tracker.on_the_way.label", desc: "tracker.on_the_way.desc" },
+  { key: "delivered", label: "tracker.delivered.label", desc: "tracker.delivered.desc" },
 ] as const;
 
 export type TrackerStatus = typeof TRACKER_STEPS[number]["key"] | "pending";
@@ -30,6 +31,7 @@ interface Props {
  * (user tracker, NGO dashboard, volunteer task card).
  */
 export function StatusTimeline({ status, hasVolunteer, updatedAt, className, compact }: Props) {
+  const { t } = useTranslation();
   const active = statusToIndex(status, hasVolunteer);
   const niceTime = updatedAt ? new Date(updatedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
 
@@ -70,11 +72,11 @@ export function StatusTimeline({ status, hasVolunteer, updatedAt, className, com
                   pending && "text-muted-foreground"
                 )}
               >
-                {step.label}
+                {t(step.label)}
               </div>
               {!compact && (
                 <div className="text-[11px] text-muted-foreground">
-                  {current && niceTime ? `Updated ${niceTime}` : step.desc}
+                  {current && niceTime ? t("tracker.updatedAt", { time: niceTime }) : t(step.desc)}
                 </div>
               )}
             </div>

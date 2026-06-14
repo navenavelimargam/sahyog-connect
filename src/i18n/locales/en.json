@@ -24,6 +24,18 @@
     "shelter": "Shelter Needed",
     "clothes": "Clothes / Essentials"
   },
+  "feedCategories": {
+    "tree": "Tree Plantation",
+    "blood": "Blood Donation",
+    "food": "Food",
+    "shelter": "Shelter",
+    "medical": "Medical Aid",
+    "education": "Education",
+    "emergency": "Emergency",
+    "clothes": "Clothes",
+    "water": "Clean Water",
+    "animal": "Animal Care"
+  },
   "help": {
     "title": "🆘 Get Help Now",
     "subtitle": "Pick a category, tell us what you need, then choose an NGO. Your GPS location is detected automatically.",
@@ -77,13 +89,41 @@
     "categoriesTitle": "Categories",
     "all": "All",
     "upcomingEvents": "Upcoming Events",
+    "communityFeed": "Community Feed",
     "registered": "Registered",
     "register": "Register",
     "comments": "Comments",
     "writeComment": "Write a comment…",
     "post": "Post",
     "share": "Share",
-    "like": "Like"
+    "like": "Like",
+    "helpful": "Helpful",
+    "comment": "Comment",
+    "noEventsMatch": "No events match your search.",
+    "noPostsMatch": "No posts match your search.",
+    "beTheFirst": "Be the first to comment."
+  },
+  "feedPosts": {
+    "p1": {
+      "title": "Food Distribution Drive — Jawahar Nagar",
+      "description": "Our volunteers distributed hot meals to 120+ children and families in Jawahar Nagar today. Your support makes this possible. Every smile makes it worth it! 🙏"
+    },
+    "p2": {
+      "title": "Weekend Tree Plantation — 200 Saplings Planted!",
+      "description": "Join us every Sunday morning! Today 8 volunteers planted 200 native saplings near the riverbank. Be the change you want to see. 🌱"
+    },
+    "p6": {
+      "title": "Blood Donation Camp — 142 Units Collected",
+      "description": "Heartfelt thanks to every donor. 142 units of blood collected today will save countless lives across hospitals in our region. ❤️🩸"
+    },
+    "p13": {
+      "title": "Blood Donation Drive — Corporate Partnership 🩸",
+      "description": "Partnered with 12 corporate offices for a city-wide blood drive. 580 units collected — enough to save 1,700+ lives. Thank you, Mumbai!"
+    },
+    "p14": {
+      "title": "Mangrove Restoration — 1,000 Saplings Planted 🌱",
+      "description": "Coastal protection starts with mangroves. 50 volunteers, 1,000 saplings, 1 beautiful coastline restored. Join our next Sunday plantation drive."
+    }
   },
   "dashboard": {
     "ngoTitle": "NGO Supervisor",
@@ -105,7 +145,17 @@
     "matchAssign": "Assign",
     "matchSkill": "skill match",
     "matchAway": "km away",
-    "openB2B": "B2B Collaboration Marketplace"
+    "openB2B": "B2B Collaboration Marketplace",
+    "supervisorOnly": "Only NGO supervisors can access this dashboard.",
+    "supervisorOnlyTitle": "NGO Supervisors Only",
+    "loadDataError": "Could not load dashboard data.",
+    "volunteerAssigned": "Volunteer assigned ✅",
+    "b2bEmergencySos": "🚨 B2B Emergency SOS — Request from Peer NGO",
+    "documentation": "📸 Documentation",
+    "noGpsData": "No GPS data yet.",
+    "anotherNgo": "another NGO",
+    "peerNgoSos": "🚨 PEER NGO SOS ALERT — from",
+    "acceptAssignVolunteer": "✅ Accept Request & Assign Volunteer"
   },
   "profile": {
     "myPosts": "My Posts",

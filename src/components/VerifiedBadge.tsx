@@ -1,5 +1,6 @@
 import { CheckCircle2, Handshake, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+// import { useTranslation } from "react-i18next";
 
 type BadgeKind = "user" | "volunteer" | "ngo";
 
