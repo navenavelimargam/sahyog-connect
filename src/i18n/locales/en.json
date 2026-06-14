@@ -191,7 +191,11 @@
     "message": "Message",
     "rateTitle": "Rate your volunteer",
     "experiencePlaceholder": "Tell us about your experience…",
-    "submitRating": "Submit Rating"
+    "submitRating": "Submit Rating",
+    "accepted": { "label": "Request Accepted", "desc": "NGO has accepted your request and is assigning a volunteer" },
+    "on_the_way": { "label": "On The Way", "desc": "Your volunteer is heading to your location" },
+    "delivered": { "label": "Delivered", "desc": "Help has been delivered — thank you for using Sahyog" },
+    "updatedAt": "Updated {{time}}"
   },
   "b2b": {
     "title": "🤝 B2B Collaboration Marketplace",
@@ -222,5 +226,18 @@
     "posted": "Request posted to peer NGOs ✅",
     "claimedToast": "Thanks! You have offered support — the requesting NGO has been notified.",
     "fulfilledToast": "Marked as fulfilled. Great teamwork!"
+  },
+  "tasks": {
+    "title": "Volunteer Dashboard",
+    "welcome": "Welcome, {{name}}",
+    "activeAssignments": "Active Assignments",
+    "noAssignments": "No active assignments. NGO supervisors will notify you here when they assign you a request.",
+    "completedTitle": "Completed",
+    "min": "min",
+    "updateEta": "Update ETA",
+    "startOnWay": "Start — On The Way",
+    "markDelivered": "Mark Delivered",
+    "completedSuccess": "Completed — thank you!",
+    "shareStory": "Share This Story as a Post"
   }
 }

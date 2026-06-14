@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, MapPin, Clock, ShieldAlert, CheckCircle2, Truck, PackageCheck, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { StatusTimeline } from "@/components/StatusTimeline";
 import { Link } from "@tanstack/react-router";
 
@@ -33,6 +34,7 @@ interface Task {
 const STATUS_FLOW = ["accepted", "on_the_way", "delivered"] as const;
 
 function VolunteerTasks() {
+  const { t } = useTranslation();
   const { user, loading, role, profile } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -109,23 +111,23 @@ function VolunteerTasks() {
       <TopBar />
       <header className="gradient-hero text-white shadow-elevated">
         <div className="mx-auto max-w-2xl px-4 py-5">
-          <h1 className="font-display text-xl font-bold">🤝 Volunteer Dashboard</h1>
-          <p className="text-sm text-white/80">Welcome, {profile?.full_name} • {profile?.skills?.join(", ") || "Helper"}</p>
+          <h1 className="font-display text-xl font-bold">🤝 {t("tasks.title")}</h1>
+          <p className="text-sm text-white/80">{t("tasks.welcome", { name: profile?.full_name })} • {profile?.skills?.join(", ") || "Helper"}</p>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <Stat k="Active" v={active.length} />
-            <Stat k="Completed" v={done.length} />
-            <Stat k="Rating" v={(profile?.rating ?? 5).toFixed(1)} />
+            <Stat k={t("dashboard.active")} v={active.length} />
+            <Stat k={t("profile.tasks")} v={done.length} />
+            <Stat k={t("profile.rating")} v={(profile?.rating ?? 5).toFixed(1)} />
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-4 px-3 py-4">
-        <h2 className="px-1 font-display text-lg font-bold">📋 Active Assignments</h2>
+        <h2 className="px-1 font-display text-lg font-bold">📋 {t("tasks.activeAssignments")}</h2>
         {loadingData ? (
           <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></div>
         ) : active.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            No active assignments. NGO supervisors will notify you here when they assign you a request.
+            {t("tasks.noAssignments")}
           </div>
         ) : (
           active.map((t) => <TaskCard key={t.id} task={t} onUpdate={updateStatus} />)
@@ -133,7 +135,7 @@ function VolunteerTasks() {
 
         {done.length > 0 && (
           <>
-            <h2 className="px-1 pt-3 font-display text-lg font-bold">✅ Completed</h2>
+            <h2 className="px-1 pt-3 font-display text-lg font-bold">✅ {t("tasks.completedTitle")}</h2>
             {done.map((t) => <TaskCard key={t.id} task={t} onUpdate={updateStatus} />)}
           </>
         )}
@@ -153,6 +155,7 @@ function Stat({ k, v }: { k: string; v: number | string }) {
 }
 
 function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next: string, eta?: number) => void }) {
+  const { t } = useTranslation();
   const [eta, setEta] = useState(task.eta_minutes ?? 15);
   const idx = STATUS_FLOW.indexOf(task.status as typeof STATUS_FLOW[number]);
   const next = idx >= 0 && idx < STATUS_FLOW.length - 1 ? STATUS_FLOW[idx + 1] : null;
@@ -167,13 +170,13 @@ function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next:
     <article className="rounded-2xl border border-border bg-card p-4 shadow-card space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase", priorityChip)}>{task.priority} • {task.category}</span>
+          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase", priorityChip)}>{t(`priority.${task.priority}`)} • {t(`categories.${task.category}`)}</span>
           <div className="mt-2 font-bold text-foreground">{task.requester_name}</div>
           <p className="mt-1 text-sm text-foreground">"{task.description}"</p>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {task.location}</span>
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {task.selected_ngo_name}</span>
-            <span className="rounded-full bg-muted px-2 py-0.5 font-semibold capitalize">{task.status.replace("_", " ")}</span>
+            <span className="rounded-full bg-muted px-2 py-0.5 font-semibold capitalize">{t(`tracker.${task.status}.label`)}</span>
           </div>
         </div>
       </div>
@@ -184,10 +187,10 @@ function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next:
 
       {task.status === "on_the_way" && (
         <div className="flex items-center gap-2">
-          <label className="text-xs text-muted-foreground">ETA</label>
+          <label className="text-xs text-muted-foreground">{t("tracker.eta")}</label>
           <input type="number" value={eta} min={0} onChange={(e) => setEta(parseInt(e.target.value) || 0)} className="w-20 rounded-md border border-border bg-background px-2 py-1 text-sm" />
-          <span className="text-xs text-muted-foreground">min</span>
-          <Button size="sm" variant="outline" onClick={() => onUpdate(task.id, "on_the_way", eta)}>Update ETA</Button>
+          <span className="text-xs text-muted-foreground">{t("tasks.min")}</span>
+          <Button size="sm" variant="outline" onClick={() => onUpdate(task.id, "on_the_way", eta)}>{t("tasks.updateEta")}</Button>
         </div>
       )}
 
@@ -195,23 +198,23 @@ function TaskCard({ task, onUpdate }: { task: Task; onUpdate: (id: string, next:
         <div className="flex gap-2">
           {next === "on_the_way" && (
             <Button onClick={() => onUpdate(task.id, "on_the_way", eta)} className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full">
-              <Truck className="mr-2 h-4 w-4" /> Start — On The Way
+              <Truck className="mr-2 h-4 w-4" /> {t("tasks.startOnWay")}
             </Button>
           )}
           {next === "delivered" && (
             <Button onClick={() => onUpdate(task.id, "delivered")} className="flex-1 bg-success text-success-foreground hover:bg-success/90 rounded-full">
-              <PackageCheck className="mr-2 h-4 w-4" /> Mark Delivered
+              <PackageCheck className="mr-2 h-4 w-4" /> {t("tasks.markDelivered")}
             </Button>
           )}
         </div>
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-xl bg-success/10 p-2 text-sm font-semibold text-success">
-            <CheckCircle2 className="h-4 w-4" /> Completed — thank you!
+            <CheckCircle2 className="h-4 w-4" /> {t("tasks.completedSuccess")}
           </div>
           <Link to="/post" className="block">
             <Button className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
-              <Megaphone className="mr-2 h-4 w-4" /> Share This Story as a Post
+              <Megaphone className="mr-2 h-4 w-4" /> {t("tasks.shareStory")}
             </Button>
           </Link>
         </div>

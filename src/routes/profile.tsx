@@ -95,7 +95,11 @@ function ProfilePage() {
               <AvatarFallback className="bg-white/20 text-2xl font-bold text-white">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-2xl font-bold"><DT>{profile?.full_name || "Sahyog Member"}</DT></h1>
+              <h1 className="font-display text-2xl font-bold">
+                {role === "ngo_supervisor" && <span className="opacity-80">{t("dashboard.ngoTitle")}: </span>}
+                <DT>{profile?.full_name || "Sahyog Member"}</DT>
+              </h1>
+              <p className="text-sm text-white/80">{user?.email}</p>
               <p className="text-sm text-white/80">📍 <DT>{profile?.city || "India"}</DT>{profile?.ngo_name ? <> • <DT>{profile.ngo_name}</DT></> : null}</p>
               <div className="mt-1"><VerifiedBadge kind={badgeKind} className="bg-white/20 text-white" /></div>
             </div>

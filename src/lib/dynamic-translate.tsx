@@ -66,10 +66,11 @@ async function flushTranslations() {
     pending = new Set();
     return;
   }
+  (globalThis as any).__sahyog_isFlushing = true;
 
   const allPending = Array.from(pending);
-  const texts = allPending.slice(0, 30);
-  const remaining = allPending.slice(30);
+  const texts = allPending.slice(0, 20);
+  const remaining = allPending.slice(20);
   const lang = queueLang;
   pending = new Set(remaining);
   
@@ -95,7 +96,7 @@ async function flushTranslations() {
 
     // Retry logic for 429
     if (response.status === 429) {
-      await new Promise(r => setTimeout(r, 4000));
+      await new Promise(r => setTimeout(r, 5000));
       response = await fetch(url, options);
     }
 
@@ -114,8 +115,9 @@ async function flushTranslations() {
       toStorage(key, value);
     });
     bump();
-  } catch {
-    // ignore failures
+  } finally {
+    (globalThis as any).__sahyog_isFlushing = false;
+    if (pending.size > 0) scheduleFlush();
   }
 }
 
@@ -124,7 +126,7 @@ function scheduleFlush() {
   flushTimer = window.setTimeout(async () => {
     flushTimer = null;
     await flushTranslations();
-  }, 1200);
+  }, 2000);
 }
 
 function ensure(text: string, lang: Lang) {

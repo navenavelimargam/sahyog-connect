@@ -126,7 +126,7 @@ Rules:
 - Output ONLY by calling the translations function with an array of the same length and order as the input.`;
 
   const allTranslations: string[] = new Array(input.texts.length).fill("");
-  const CHUNK_SIZE = 30;
+  const CHUNK_SIZE = 20;
 
   for (let i = 0; i < input.texts.length; i += CHUNK_SIZE) {
     const chunk = input.texts.slice(i, i + CHUNK_SIZE).map((t) => String(t ?? "").slice(0, 800));
@@ -153,8 +153,8 @@ Rules:
       let resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body });
 
       if (resp.status === 429) {
-        console.warn(`Gemini API: 429 Too Many Requests for chunk ${i/CHUNK_SIZE + 1}. Retrying in 4000ms...`);
-        await new Promise(r => setTimeout(r, 4000));
+        console.warn(`Gemini API: 429 Too Many Requests for chunk ${i/CHUNK_SIZE + 1}. Retrying in 5000ms...`);
+        await new Promise(r => setTimeout(r, 5000));
         resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body });
       }
 
